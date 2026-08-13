@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { CitySkyline, prefersReducedMotion, seeded } from "./motion";
 
-const INK = 0x1c2a21;
-const PAPER = 0xfcf9f1;
-const FOREST = 0x1e5b41;
-const TERRACOTTA = 0xb4541f;
+const INK = 0x146447;
+const PAPER = 0xffffff;
+const FOREST = 0x146447;
+const TERRACOTTA = 0xe77800;
 
 type Structure = { mesh: THREE.Object3D; bornAt: number };
 
