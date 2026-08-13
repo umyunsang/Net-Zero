@@ -165,21 +165,30 @@ function BalanceModule({ points, reward, avoided, projected }: { points: number;
   const target = reward?.pointsCost ?? 20;
   const remaining = Math.max(0, target - points);
   const progress = Math.min(100, target === 0 ? 100 : (points / target) * 100);
+  const growth = structureBudget(points, "earned");
   return (
-    <section className="balance-module" aria-label={t("คะแนนของคุณ")}>
-      <span className="balance-leaf-mark" aria-hidden="true"><Icon name="activity" /></span>
-      <div className="balance-copy">
-        <strong><span>{displayPoints}</span> {t("คะแนน")}</strong>
-        <div className="progress-track" aria-hidden="true"><span style={{ width: `${progress}%` }} /></div>
-        <p>{remaining === 0
-          ? t("แลกได้แล้ว")
-          : reward
-            ? reward.titleThai.replace(/\s*\(สาธิต\)\s*$/, "") === "ส่วนลดสินค้า 20 บาท"
-              ? t("อีก {count} คะแนน รับส่วนลด 20 บาท", { count: remaining })
-              : t("อีก {count} คะแนน รับ{reward}", { count: remaining, reward: localizeRewardTitle(language, reward.titleThai) })
-            : t("อีก {count} คะแนน ถึงรางวัล", { count: remaining })}</p>
+    <section className="balance-module home-city-card" aria-label={t("คะแนนของคุณ")} data-profile="LotusRider">
+      <div className="home-city-stage" aria-hidden="true">
+        <Suspense fallback={null}><CityCanvas key={points} points={points} fallback="empty" growthMode="earned" /></Suspense>
       </div>
-      <BalanceImpactSummary avoided={avoided} projected={projected} />
+      <div className="home-city-summary">
+        <div className="balance-copy">
+          <strong><span>{displayPoints}</span> {t("คะแนน")}</strong>
+          <div className="progress-track" aria-hidden="true"><span style={{ width: `${progress}%` }} /></div>
+          <p>{remaining === 0
+            ? t("แลกได้แล้ว")
+            : reward
+              ? reward.titleThai.replace(/\s*\(สาธิต\)\s*$/, "") === "ส่วนลดสินค้า 20 บาท"
+                ? t("อีก {count} คะแนน รับส่วนลด 20 บาท", { count: remaining })
+                : t("อีก {count} คะแนน รับ{reward}", { count: remaining, reward: localizeRewardTitle(language, reward.titleThai) })
+              : t("อีก {count} คะแนน ถึงรางวัล", { count: remaining })}</p>
+        </div>
+        <dl className="home-growth-grid">
+          <div><dt>{t("อาคาร")}</dt><dd>{growth.buildings}</dd></div>
+          <div><dt>{t("ต้นไม้")}</dt><dd>{growth.trees}</dd></div>
+        </dl>
+        <BalanceImpactSummary avoided={avoided} projected={projected} />
+      </div>
     </section>
   );
 }
@@ -217,7 +226,7 @@ function ActivityRow({ activity, onClick, compact = false }: { activity: Activit
   );
 }
 
-function HomeScreen({ onNavigate, onSelectActivity }: { onNavigate: (page: ConsumerPage) => void; onSelectActivity: (activity: Activity) => void }) {
+function HomeScreen({ onNavigate, onSelectActivity, onOpenLeaderboard }: { onNavigate: (page: ConsumerPage) => void; onSelectActivity: (activity: Activity) => void; onOpenLeaderboard: (pseudonym?: string) => void }) {
   const { t, language } = useI18n();
   const activityCopy = getActivityCopy(t);
   const claimStatusCopy = getClaimStatusCopy(t);
@@ -289,8 +298,8 @@ function HomeScreen({ onNavigate, onSelectActivity }: { onNavigate: (page: Consu
           )}
         </section>
         <section className="content-section leaderboard-preview">
-          <div className="section-heading"><h2>{t("อันดับประจำสัปดาห์")}</h2><button className="text-button" onClick={() => onNavigate("leaderboard")}>{t("ดูทั้งหมด")}</button></div>
-          {previewEntries.length > 0 ? <ol className="leaderboard-list preview-list">{previewEntries.map((entry) => <li className={entry.pseudonym_th === leaderboard?.viewer.pseudonym_th ? "is-viewer" : ""} key={`${entry.rank}-${entry.pseudonym_th}`}><span>{entry.rank}</span><strong>{entry.pseudonym_th}</strong><em>{entry.weekly_points} {t("คะแนน")}</em></li>)}</ol> : <p className="empty-copy">{t("ชุมชนกำลังเริ่มต้น")}</p>}
+          <div className="section-heading"><h2>{t("อันดับประจำสัปดาห์")}</h2><button className="text-button" onClick={() => onOpenLeaderboard()}>{t("ดูทั้งหมด")}</button></div>
+          {previewEntries.length > 0 ? <ol className="leaderboard-list preview-list">{previewEntries.map((entry) => <li className={entry.pseudonym_th === leaderboard?.viewer.pseudonym_th ? "is-viewer" : ""} key={`${entry.rank}-${entry.pseudonym_th}`}><button className="leaderboard-preview-button" type="button" aria-label={t("เลือก {name} เพื่อดูโปรไฟล์ประจำสัปดาห์", { name: entry.pseudonym_th })} onClick={() => onOpenLeaderboard(entry.pseudonym_th)}><span>{entry.rank}</span><strong>{entry.pseudonym_th}</strong><em>{entry.weekly_points} {t("คะแนน")}</em></button></li>)}</ol> : <p className="empty-copy">{t("ชุมชนกำลังเริ่มต้น")}</p>}
         </section>
       </div>
     </div>
@@ -745,11 +754,11 @@ function leaderboardInitials(value: string): string {
   return Array.from(value.replace(/\s/g, "")).slice(0, 2).join("").toUpperCase();
 }
 
-function LeaderboardScreen({ onBack }: { onBack: () => void }) {
+function LeaderboardScreen({ onBack, initialPseudonym }: { onBack: () => void; initialPseudonym?: string | null }) {
   const { t, locale } = useI18n();
   const [data, setData] = useState<LeaderboardData>();
   const [optedIn, setOptedIn] = useState(false);
-  const [selectedPseudonym, setSelectedPseudonym] = useState<string | null>(null);
+  const [selectedPseudonym, setSelectedPseudonym] = useState<string | null>(initialPseudonym ?? null);
   const [saving, setSaving] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState("");
@@ -760,6 +769,13 @@ function LeaderboardScreen({ onBack }: { onBack: () => void }) {
       .then((value) => { const result = parseLeaderboardData(value); setData(result); setOptedIn(result.viewer.opted_in); })
       .catch((cause: unknown) => setError(t(cause instanceof Error ? cause.message : "โหลดข้อมูลชุมชนไม่ได้")));
   }, [t]);
+
+  useEffect(() => {
+    if (!data || !initialPseudonym || !data.entries.some((entry) => entry.pseudonym_th === initialPseudonym)) return;
+    if (window.matchMedia("(max-width: 1023px)").matches) {
+      window.requestAnimationFrame(() => profileCardRef.current?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }));
+    }
+  }, [data, initialPseudonym]);
 
   async function updateConsent(next: boolean) {
     const previous = optedIn;
@@ -916,6 +932,7 @@ export function ConsumerApp({ onSwitchRole, onLogout }: { onSwitchRole: (role: R
   const [voucher, setVoucher] = useState<Voucher>();
   const [voucherBalance, setVoucherBalance] = useState(0);
   const [walletRefreshKey, setWalletRefreshKey] = useState(0);
+  const [leaderboardSelection, setLeaderboardSelection] = useState<string | null>(null);
   const activeDestination = primaryDestination(page);
   const navItems = getNavItems(t);
   const isDetail = page === "capture" || page === "voucher" || page === "history";
@@ -931,15 +948,20 @@ export function ConsumerApp({ onSwitchRole, onLogout }: { onSwitchRole: (role: R
     navigate("capture");
   }
 
+  function openLeaderboard(pseudonym?: string) {
+    setLeaderboardSelection(pseudonym ?? null);
+    navigate("leaderboard");
+  }
+
   let screen;
-  if (page === "home") screen = <HomeScreen onNavigate={navigate} onSelectActivity={selectActivity} />;
-  else if (page === "leaderboard") screen = <LeaderboardScreen onBack={() => navigate("home")} />;
+  if (page === "home") screen = <HomeScreen onNavigate={navigate} onSelectActivity={selectActivity} onOpenLeaderboard={openLeaderboard} />;
+  else if (page === "leaderboard") screen = <LeaderboardScreen initialPseudonym={leaderboardSelection} onBack={() => navigate("home")} />;
   else if (page === "activities") screen = <ActivityHub onSelect={selectActivity} onHistory={() => navigate("history")} />;
   else if (page === "capture") screen = <ActivityCapture activity={activity} onBack={() => navigate("activities")} onHistory={() => navigate("history")} />;
   else if (page === "history") screen = <HistoryScreen onBack={() => navigate("activities")} />;
   else if (page === "wallet") screen = <WalletScreen refreshKey={walletRefreshKey} onOpenVoucher={(nextVoucher, balance) => { setVoucher(nextVoucher); setVoucherBalance(balance); navigate("voucher"); }} />;
   else if (page === "voucher" && voucher) screen = <VoucherDetail voucher={voucher} balance={voucherBalance} onBack={() => navigate("wallet")} />;
-  else screen = <ProfileScreen onOpenLeaderboard={() => navigate("leaderboard")} onSwitchRole={onSwitchRole} onLogout={onLogout} />;
+  else screen = <ProfileScreen onOpenLeaderboard={() => openLeaderboard()} onSwitchRole={onSwitchRole} onLogout={onLogout} />;
 
   return (
     <div className={`consumer-app${isDetail ? " is-detail" : ""}`}>

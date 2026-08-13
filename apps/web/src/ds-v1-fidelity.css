@@ -494,6 +494,27 @@ html:lang(ko) .reward-card h3, html:lang(ko) .reward-card strong, html:lang(ko) 
 .preview-list { overflow: hidden; border: 1px solid var(--color-border); border-radius: 14px; background: #fff; }
 .preview-list li:first-child { border-top: 0; }
 .preview-list li.is-viewer { border-top: 1px solid #a7cbb9; }
+.preview-list li { display: block; min-height: 0; padding: 0; }
+.leaderboard-preview-button {
+  display: grid;
+  width: 100%;
+  min-height: 56px;
+  padding: 0 12px;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+.leaderboard-preview-button:hover { background: var(--color-green-100); }
+.leaderboard-preview-button:focus-visible { outline: 2px solid var(--color-green-700); outline-offset: -3px; }
+.leaderboard-preview-button > span { color: var(--color-green-700); font-weight: 700; font-variant-numeric: tabular-nums lining-nums; }
+.leaderboard-preview-button > strong { min-width: 0; overflow: hidden; font-size: 15px; font-weight: 600; line-height: 1.5; text-overflow: ellipsis; white-space: nowrap; }
+.leaderboard-preview-button > em { color: var(--color-text); font-style: normal; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums lining-nums; white-space: nowrap; }
 .leaderboard-screen > .screen-heading { margin-bottom: 14px; }
 .leaderboard-trust { margin-bottom: 20px; padding-top: 16px; border-top: 1px solid var(--color-border); }
 .leaderboard-meta { display: flex; margin-bottom: 18px; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; color: var(--color-muted); font-size: 13px; line-height: 1.55; }

@@ -36,6 +36,11 @@ async function completeTree(page: Page, species = "ตะแบก") {
 async function expectHomeTotals(page: Page, points: number, avoided: string, projected: string) {
   await page.getByRole("navigation").getByRole("button", { name: "หน้าแรก", exact: true }).click();
   await expect(page.locator(".balance-copy > strong > span")).toHaveText(String(points));
+  const city = page.locator(".home-city-stage .city-motif");
+  await expect(city).toHaveAttribute("data-growth-mode", "earned");
+  await expect(city).toHaveAttribute("data-points", String(points));
+  await expect(city).toHaveAttribute("data-buildings", String(Math.min(Math.floor(points / 4), 20)));
+  await expect(city).toHaveAttribute("data-trees", String(points === 0 ? 0 : Math.min(Math.max(1, Math.floor(points / 3)), 24)));
   const impactSummary = page.getByLabel("ผลกระทบคาร์บอนของฉัน").first();
   await expect(impactSummary).toContainText(`${avoided} kg CO₂e`);
   await expect(impactSummary).toContainText(`${projected} kg CO₂e`);
@@ -49,7 +54,7 @@ test("public presentation demo completes points, voucher, and leaderboard flow w
 
   await enterDemo(page);
   await expect(page.locator(".balance-copy > strong > span")).toHaveText("0");
-  await expect(page.locator(".home-hero .city-motif")).toHaveCount(0);
+  await expect(page.locator(".home-city-stage .city-motif")).toHaveAttribute("data-points", "0");
 
   await completeBus(page);
   await expect(page.getByRole("heading", { name: "เพราะคุณ ธรรมชาติจึงเติบโต" })).toBeVisible();
@@ -163,18 +168,28 @@ test("carbon-impact Home stays readable at every approved responsive gate", asyn
     const summary = page.getByLabel("ผลกระทบคาร์บอนของฉัน").first();
     await expect(summary).toBeVisible();
     await expect(summary).toContainText("0 kg CO₂e");
-    await expect(page.locator(".home-hero .city-motif")).toHaveCount(0);
+    const homeCity = page.locator(".home-city-stage .city-motif");
+    await expect(homeCity.locator("canvas")).toBeVisible();
+    await expect(homeCity).toHaveAttribute("data-growth-mode", "earned");
     const layout = await page.evaluate(() => {
       const element = document.querySelector<HTMLElement>(".balance-impact");
       const values = [...document.querySelectorAll<HTMLElement>(".balance-impact dd")];
+      const stage = document.querySelector<HTMLElement>(".home-city-stage")?.getBoundingClientRect();
+      const city = document.querySelector<HTMLElement>(".home-city-stage .city-motif")?.getBoundingClientRect();
       return {
         overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
         cardWidth: element?.getBoundingClientRect().width ?? 0,
         minimumValueWidth: Math.min(...values.map((value) => value.getBoundingClientRect().width)),
+        cityWidth: city?.width ?? 0,
+        cityHeight: city?.height ?? 0,
+        cityCenterDelta: stage && city ? Math.abs((stage.left + stage.width / 2) - (city.left + city.width / 2)) : Number.POSITIVE_INFINITY,
       };
     });
     expect(layout.overflow).toBeLessThanOrEqual(0);
     expect(layout.cardWidth).toBeGreaterThan(250);
     expect(layout.minimumValueWidth).toBeGreaterThan(50);
+    expect(layout.cityWidth).toBeGreaterThan(220);
+    expect(layout.cityHeight).toBeGreaterThanOrEqual(157);
+    expect(layout.cityCenterDelta).toBeLessThanOrEqual(1);
   }
 });

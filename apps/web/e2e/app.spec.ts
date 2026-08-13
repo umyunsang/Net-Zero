@@ -247,6 +247,34 @@ test("1024px home keeps the score hierarchy readable beside the secondary column
   expect(layout.overflow).toBe(0);
 });
 
+test("home profile card grows its interactive city from the current user's points", async ({ page }) => {
+  await mockApi(page, { dashboardPoints: 18 });
+  await login(page, "ผู้ใช้งาน");
+  const card = page.getByLabel("คะแนนของคุณ");
+  const city = card.locator(".home-city-stage .city-motif");
+  await expect(card).toHaveAttribute("data-profile", "LotusRider");
+  await expect(city.locator("canvas")).toBeVisible();
+  await expect(city).toHaveAttribute("data-growth-mode", "earned");
+  await expect(city).toHaveAttribute("data-points", "18");
+  await expect(city).toHaveAttribute("data-buildings", "4");
+  await expect(city).toHaveAttribute("data-trees", "6");
+  await expect(card.locator(".home-growth-grid")).toContainText("อาคาร4");
+  await expect(card.locator(".home-growth-grid")).toContainText("ต้นไม้6");
+  await expect(card.getByLabel("ผลกระทบคาร์บอนของฉัน")).toContainText("13 kg CO₂e");
+});
+
+test("home leaderboard rows open the matching selected city profile", async ({ page }) => {
+  await mockApi(page, { dashboardPoints: 18, leaderboardOptedIn: true });
+  await login(page, "ผู้ใช้งาน");
+  await page.getByRole("button", { name: "เลือก ใบไม้ยามเช้า เพื่อดูโปรไฟล์ประจำสัปดาห์" }).click();
+  const profile = page.locator(".leaderboard-participation");
+  await expect(page.getByRole("heading", { name: "อันดับประจำสัปดาห์" })).toBeVisible();
+  await expect(profile).toHaveAttribute("data-selected-profile", "ใบไม้ยามเช้า");
+  await expect(profile.locator(".city-motif")).toHaveAttribute("data-points", "75");
+  await expect(profile.locator(".city-motif")).toHaveAttribute("data-buildings", "18");
+  await expect(profile.locator(".city-motif")).toHaveAttribute("data-trees", "24");
+});
+
 test("activity hub retains all three Fable scenes without horizontal overflow", async ({ page }) => {
   await mockApi(page, { dashboardPoints: 0 });
   await login(page, "ผู้ใช้งาน");
@@ -276,7 +304,7 @@ test("home activity cards use the same three Fable illustrations as the activity
 test("consumer home hides internal requirements while keeping the three earn paths visible", async ({ page }) => {
   await mockApi(page, { dashboardPoints: 0 });
   await login(page, "ผู้ใช้งาน");
-  await expect(page.getByLabel("คะแนนของคุณ").getByText("0", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("คะแนนของคุณ").locator(".balance-copy > strong > span")).toHaveText("0");
   await expect(page.getByText("อีก 20 คะแนน รับส่วนลด 20 บาท")).toBeVisible();
   for (const label of ["ขึ้นรถโดยสาร", "ส่งรีไซเคิล", "ปลูกต้นไม้"]) await expect(page.getByRole("button", { name: new RegExp(label) }).first()).toBeVisible();
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
