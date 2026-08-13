@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 3,
+  "kind": "production-readiness-gate-report",
+  "command": "pnpm db:production-readiness",
+  "runId": "3de5b96d-7eb1-4a44-83e6-8acec681f928",
+  "generatedAt": "2026-08-12T21:23:46.050Z",
+  "status": "failed",
+  "exitCode": 1,
+  "productionReady": false,
+  "observedDatabase": {
+    "marker": "mock_demo",
+    "expectedScope": "production",
+    "markerMatches": false
+  },
+  "provenance": {
+    "sourceFiles": [
+      "package.json",
+      "apps/api/package.json",
+      "apps/api/src/config.ts",
+      "apps/api/src/claims/claims.service.ts",
+      "apps/api/src/community/community.service.ts",
+      "apps/api/src/database/demo-mode.ts",
+      "apps/api/src/database/demo-readiness.ts",
+      "apps/api/src/database/production-readiness.ts",
+      "apps/api/src/database/reset-demo.ts",
+      "apps/api/src/evidence/evidence.service.ts",
+      "apps/api/src/rewards/rewards.service.ts",
+      "apps/api/test/demo-separation/full-demo.test.ts",
+      "migrations/001_initial.sql",
+      "seed/demo/001_demo.sql",
+      "seed/approved-factors/001_tgo_candidates.sql"
+    ],
+    "sourceHash": "sha256:2824f5b35a2ce9bc5bd8342c983215fd5e629c48b3c69e2ff0e6f001480d22cd",
+    "configHash": "sha256:6ab0ec2d245c56ff00b226d262e8ac9e836b4019310d9dfdbc771881f52f665e",
+    "fixtureHash": "sha256:10d90c3448acc6aec6e4876912953d5a3be27a2d4d64f43b76ce9e821acafe3c"
+  },
+  "factors": {
+    "ready": false,
+    "missingActivities": [
+      "bus",
+      "recycling",
+      "tree"
+    ],
+    "activities": {
+      "bus": {
+        "ready": false,
+        "factorId": "b0000000-0000-4000-8000-000000000002"
+      },
+      "recycling": {
+        "ready": false,
+        "factorId": "b0000000-0000-4000-8000-000000000003"
+      },
+      "tree": {
+        "ready": false,
+        "factorId": "b0000000-0000-4000-8000-000000000001"
+      }
+    }
+  },
+  "physicalEvidence": {
+    "status": "not_collected"
+  },
+  "tgoEndorsed": false,
+  "realIntegrations": {
+    "identity": "not_integrated",
+    "transit": "not_integrated",
+    "treeAi": "not_integrated",
+    "recyclingBin": "not_integrated",
+    "merchantPayment": "not_integrated"
+  },
+  "messageThai": "ยังไม่พร้อมใช้งานจริง: รายงานตรวจเฉพาะปัจจัยและตัวทำเครื่องหมายฐานข้อมูล; หลักฐานทางกายภาพ การรับรองโดย อบก. และการเชื่อมพันธมิตรยังไม่ได้เก็บหรือเชื่อมต่อ"
+}

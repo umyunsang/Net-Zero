@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "kind": "google-docs-trusted-read-context",
+  "target": {
+    "documentId": "12By7hZepMf-odsEqBl0bEcUBSdWWtxJZ2hGC1nUKi0Y",
+    "title": "KCAMT Document",
+    "revisionId": "AIroW356H7FWLzoyycapGBv4rTvvbcffY22nJNmOxkW4-b86DYjx1R_ASFakNPBBMt4ZqFJLSoF2PulFeFRExlvvNEMfMZOVtYbVopdQo9sI",
+    "documentUrl": "https://docs.google.com/document/d/12By7hZepMf-odsEqBl0bEcUBSdWWtxJZ2hGC1nUKi0Y",
+    "selectedTabId": null
+  },
+  "dropdownMetadata": {
+    "status": "unavailable",
+    "resolvedTool": null,
+    "authoritative": false,
+    "count": 0
+  },
+  "derivedControlInventory": {
+    "hasProtectedControls": false,
+    "authoritativeDropdownCount": 0,
+    "opaqueControlCount": 0,
+    "nativeElementCounts": {
+      "inlineObjectElement": 1
+    },
+    "tabsScanned": [
+      "t.0",
+      "t.c1k7ch9qzi75",
+      "t.tk7q00hpkfln",
+      "t.9jc9hdvnbp7g"
+    ],
+    "controls": [],
+    "nativeElements": [
+      {
+        "type": "inlineObjectElement",
+        "startIndex": 5239,
+        "endIndex": 5240,
+        "tabId": "t.0",
+        "segmentId": null,
+        "container": {
+          "kind": "paragraph",
+          "path": "root.tabs[0].body.content[32]",
+          "tabId": "t.0",
+          "segmentId": null,
+          "startIndex": 5239,
+          "endIndex": 5658,
+          "namedStyleType": "NORMAL_TEXT",
+          "listId": null,
+          "nestingLevel": null,
+          "table": null
+        },
+        "properties": {
+          "inlineObjectId": "kix.c5ootvukmxtt",
+          "textStyle": {
+            "backgroundColor": {
+              "color": {
+                "rgbColor": {
+                  "red": 1,
+                  "green": 1
+                }
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "editGuidance": {
+    "advisoryOnly": true,
+    "requiresTargetedPreservation": false,
+    "recommendedBehavior": "No protected controls were detected in the scanned scope.",
+    "warnings": []
+  }
+}

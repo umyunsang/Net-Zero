@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 3,
+  "kind": "mock-demo-readiness-gate-report",
+  "command": "pnpm db:demo-readiness",
+  "runId": "a1e492af-caf1-49f9-b4b1-51c0ba7bfee9",
+  "generatedAt": "2026-08-12T21:23:44.805Z",
+  "status": "passed",
+  "exitCode": 0,
+  "mockDemoReady": true,
+  "observedDatabase": {
+    "marker": "mock_demo",
+    "expectedScope": "mock_demo",
+    "markerMatches": true
+  },
+  "provenance": {
+    "sourceFiles": [
+      "package.json",
+      "apps/api/package.json",
+      "apps/api/src/config.ts",
+      "apps/api/src/claims/claims.service.ts",
+      "apps/api/src/community/community.service.ts",
+      "apps/api/src/database/demo-mode.ts",
+      "apps/api/src/database/demo-readiness.ts",
+      "apps/api/src/database/production-readiness.ts",
+      "apps/api/src/database/reset-demo.ts",
+      "apps/api/src/evidence/evidence.service.ts",
+      "apps/api/src/rewards/rewards.service.ts",
+      "apps/api/test/demo-separation/full-demo.test.ts",
+      "migrations/001_initial.sql",
+      "seed/demo/001_demo.sql",
+      "seed/approved-factors/001_tgo_candidates.sql"
+    ],
+    "sourceHash": "sha256:2824f5b35a2ce9bc5bd8342c983215fd5e629c48b3c69e2ff0e6f001480d22cd",
+    "configHash": "sha256:6ab0ec2d245c56ff00b226d262e8ac9e836b4019310d9dfdbc771881f52f665e",
+    "fixtureHash": "sha256:10d90c3448acc6aec6e4876912953d5a3be27a2d4d64f43b76ce9e821acafe3c"
+  },
+  "factors": {
+    "ready": true,
+    "missingActivities": [],
+    "activities": {
+      "bus": {
+        "ready": true,
+        "factorId": "b0000000-0000-4000-8000-000000000002",
+        "factorStatus": "draft",
+        "approvalScope": "mock_demo",
+        "isMock": true,
+        "demoOnly": true,
+        "digestMatches": true
+      },
+      "recycling": {
+        "ready": true,
+        "factorId": "b0000000-0000-4000-8000-000000000003",
+        "factorStatus": "draft",
+        "approvalScope": "mock_demo",
+        "isMock": true,
+        "demoOnly": true,
+        "digestMatches": true
+      },
+      "tree": {
+        "ready": true,
+        "factorId": "b0000000-0000-4000-8000-000000000001",
+        "factorStatus": "draft",
+        "approvalScope": "mock_demo",
+        "isMock": true,
+        "demoOnly": true,
+        "digestMatches": true
+      }
+    }
+  },
+  "productionFactors": {
+    "ready": false,
+    "missingActivities": [
+      "bus",
+      "recycling",
+      "tree"
+    ]
+  },
+  "behavioralFlows": {
+    "claims": "passed_test",
+    "vouchers": "passed_test",
+    "carbonPointsLedger": "passed_test",
+    "dashboardLeaderboard": "passed_test"
+  },
+  "completeDemo": "passed",
+  "tgoEndorsed": false,
+  "physicalEvidence": {
+    "status": "not_collected"
+  },
+  "realIntegrations": {
+    "identity": "not_integrated",
+    "transit": "not_integrated",
+    "treeAi": "not_integrated",
+    "recyclingBin": "not_integrated",
+    "merchantPayment": "not_integrated"
+  },
+  "messageThai": "เดโมจำลองพร้อม: ขอบเขต ปัจจัย และผลการทดสอบ complete mock demo ผ่านใน source เดียวกัน"
+}

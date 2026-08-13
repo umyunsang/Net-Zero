@@ -1,0 +1,52 @@
+# Progress: Net-Zero consumer product UI redesign
+
+## 2026-08-13
+- Routed the feedback as a material product-design revision, not a small styling fix.
+- Read the active planning, brainstorming, and frontend design procedures completely.
+- Paused the prior BM-loop UI direction; preserved its functional work and runtime evidence.
+- Started bounded discovery using only the supplied PPT, current project authority, and current visible UI before seeking `SK@v1` approval.
+- No product code has been changed for this redesign.
+- Completed a compact memory pass and treated it only as navigation to durable business contracts, not current design authority.
+- Confirmed the supplied PPT can be inspected read-only with the bundled workspace runtime.
+- Rendered all seven image-based slides to temporary PNGs for visual inspection; no project or source-PPT content was altered.
+- Inspected the deck overview and key slides. Extracted only product promise, three activity nouns, reward/community value, trust principles, and a restrained green/orange visual cue set; explicitly rejected its editorial typography and presentation structures for the product UI.
+- Reconnected to the existing local in-app browser tab for read-only current-state inspection.
+- The first tab-attachment call used an obsolete `claim` method and failed without changing browser state; switching to the current tab API.
+- Confirmed the browser session is connected; the remaining step is attaching to the listed ambient tab with the current API.
+- Attached to the existing local product tab with the current browser API; ready for read-only DOM and screenshot inspection.
+- Inspected the live Rewards DOM and captured the rejected desktop surface. Confirmed the core problem is information architecture and disclosure hierarchy, not missing business functionality.
+- Inspected the frontend component map and internal-copy usage. Confirmed the consumer, reviewer, merchant, and admin concerns are co-located in one large app file and that user navigation mirrors system modules.
+- Inspected the live Home DOM after data load. Confirmed it combines pitch, audit dashboard, internal verification mechanics, privacy policy, and transaction tutorial into one end-user page.
+- The current browser did not transition after two exact navigation clicks to the activity screen. Discovery is continuing from the current source without mutating data; interaction will be re-tested after redesign implementation.
+- Completed bounded PPT/current-UI discovery and compared three information-architecture directions.
+- Created `SK@v1` with the recommended consumer-wallet product model, explicit consumer/operator disclosure boundary, complete screen inventory, 0-point-to-voucher flow, responsive direction, locked functional semantics, and approval scope.
+- Set workflow state to `SKELETON_APPROVAL_PENDING(SK@v1)`; no product code changed.
+- Recorded the stable skeleton fingerprint `e655a489249628ec64c1b5a0947df01270122ee0e50e05d891a5696b32dcc8ca` and advanced the active plan to Phase 2.
+- Recorded the user's exact `SK@v1` approval receipt and verified the fingerprint is unchanged.
+- Marked the research manifest empty because no external/deep-research question remains; started bounded visual synthesis toward `DS@v1`.
+- Confirmed concept generation is authorized while product-code changes remain prohibited pending exact `DS@v1` approval.
+- The initial Home concept call failed before generation because an optional image-history field was set to zero; corrected by omitting it for a brand-new image.
+- Generated the first full mobile Home concept at the 0-point state. It establishes the product-like white/green/orange system and approved four-job navigation without presentation/internal-document UI.
+- Reviewed the generated preview and recorded minor density/avatar refinements. The first path-based `view_image(original)` rendering cropped unexpectedly, so an inspection-friendly derivative is required before design approval.
+- Created and inspected the Home derivative successfully with `view_image(high)`.
+- Generated and inspected the coordinated mobile Activity hub. It separates the three tasks cleanly and preserves the consumer disclosure boundary without presentation-style narration.
+- Generated and inspected the coordinated Tree capture screen. It proves the activity forms can become focused consumer tasks with contextual disclosure rather than three stacked internal/demo forms.
+- Generated and inspected the 23-point Wallet screen. It shows reward affordability and the absence of vouchers entirely through live consumer state, satisfying the BM visibility goal without a tutorial panel.
+- Generated and inspected the active Voucher detail after a 20-point exchange, showing a 3-point balance and a one-use QR/code handoff without exposing merchant or transaction internals.
+- Generated and inspected the coordinated desktop Home. The product hierarchy survives the wider viewport without reverting to a pitch deck or internal dashboard.
+- Completed the primary concept set: mobile Home, Activity hub, Tree capture, Wallet, Voucher detail, and desktop Home.
+- Generated and inspected the desktop Wallet, completing the approved responsive Home/Wallet concept scope.
+- Synthesized the inspected concept set into `DS@v1`, including exact Thai copy, tokens, component families, responsive rules, consumer/internal boundary, interaction states, architecture split, and acceptance criteria.
+- Set workflow state to `SYNTHESIZED_DESIGN_PENDING_APPROVAL(DS@v1)`; product code remains unchanged.
+- Self-reviewed `DS@v1` for placeholders, contradictions, scope, ambiguity, concept-file presence, and business-state consistency; no material issue remains.
+- Recorded design SHA-256 `6607e306dcb68870a5e892b69073216342a8f979e78ca47aeeabe2c78e478f13`.
+- Review-sheet QA note: loading the mobile and desktop contact sheets simultaneously exceeded the output context. Retrying one sheet per `view_image` call; this does not affect the already verified standalone concepts.
+- Inspected the mobile and desktop review sheets separately. Responsive hierarchy, business-state continuity, and the consumer/internal disclosure boundary are visually consistent across the complete concept set.
+- Reverified the unchanged 240-line `DS@v1` fingerprint as `6607e306dcb68870a5e892b69073216342a8f979e78ca47aeeabe2c78e478f13`. Git working-tree verification is unavailable because the project directory is not a Git repository; this turn's writes remain confined to planning/review artifacts.
+- Recorded the user's exact approval `DS@v1 승인` against the unchanged design fingerprint. The workflow is now `DESIGN_APPROVED_FOR_PLANNING(DS@v1)` and Phase 3 implementation planning is active.
+- Inspected the React/Vite frontend layout, package scripts, component outline, and existing E2E coverage. Confirmed the redesign can preserve backend contracts while replacing the consumer shell and retaining separate operator views.
+- Completed the implementation discovery pass for activity submissions, wallet state, consumer/operator tests, and the current stylesheet. No backend endpoint or scoring/voucher semantic change is required.
+- Wrote `implementation_plan_v1.md` with file ownership, preserved contracts, execution order, and rendered acceptance gates. Set workflow state to `IMPLEMENTATION_AUTHORIZED(DS@v1)`; implementation remains limited to the local frontend and its tests.
+- GitHub publication requested: verified this workspace is not yet a Git repository; `.env`, dependencies, build output, test output, coverage, and local session artifacts are covered by `.gitignore`. GitHub CLI authentication is active for `umyunsang`, and `umyunsang/Net-Zero` did not exist at the time of the check. Publication will preserve source, contracts, documentation, evidence artifacts, and planning records in scoped commits.
+- Publication validation: the first staged workspace check found one Markdown trailing-whitespace warning in `README.md` and the initial non-content secret-scan command used an invalid option order. The README was corrected and the scan will be rerun before commits; no credential value was printed or added to the index.
+- Publication hygiene: the first web commit temporarily included two generated `*.tsbuildinfo` files. Before any push, their index entries will be removed while preserving the local files, and `.gitignore` will permanently exclude TypeScript build metadata.

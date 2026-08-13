@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 4,
+  "kind": "algorithm-boundary-test-report",
+  "verificationRunId": "055308e7-0da9-48c8-bba6-6129b3f4c666",
+  "startedAt": "2026-08-12T21:20:58.478Z",
+  "generatedAt": "2026-08-12T21:23:46.263Z",
+  "sourceHash": "sha256:e5cc7e4e7892388a49598aaae8d616a107e78059008d739a90e5e42a63fd7757",
+  "sourceStableDuringRun": true,
+  "result": {
+    "exitCode": 0,
+    "domainTestsPassed": 23,
+    "contractTestsPassed": 18,
+    "workerTestsPassed": 5,
+    "browserTestsPassed": 24
+  },
+  "adversarialCoverage": [
+    "bus temporal, coverage, speed, stop, corridor, and duplicate boundaries",
+    "half-even carbon arithmetic and point caps",
+    "mock approval digest/scope mismatch and production factor denial",
+    "synthetic fixture exact interval and background fail-closed behavior",
+    "voucher concurrent terminal transitions and immutable ledger balances",
+    "stale verification artifacts and mid-run source changes"
+  ],
+  "verdict": "passed"
+}

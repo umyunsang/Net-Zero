@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 3,
+  "kind": "synthetic-fixture-browser-gate-report",
+  "status": "passed",
+  "command": "pnpm test:e2e",
+  "runId": "d798bc94-72df-42e6-877e-3013d3ebe8d1",
+  "generatedAt": "2026-08-13T03:02:42.232Z",
+  "sourceFiles": [
+    "apps/web/src/App.tsx",
+    "apps/web/src/synthetic-fixtures.json",
+    "apps/web/src/synthetic-fixture.jpg",
+    "apps/web/e2e/app.spec.ts",
+    "apps/web/e2e/device-gate.spec.ts",
+    "apps/web/playwright.config.ts",
+    "apps/web/scripts/write-device-gate-report.mjs"
+  ],
+  "sourceHash": "sha256:7fc753df345ad0e9b6ded2652cf9763f8abb4ec143a07959b714256c7dad6304",
+  "configHash": "sha256:d717acef5ff60fdd9c0b08292f28c116d2fb51406a7b274aa445846298acd2b2",
+  "fixtureHash": "sha256:e95ce7502ae21b8e8e45f59b87fe931cfb21aff2d5ecafd4b2bb808a52ce4c88",
+  "samplingIntervalMilliseconds": 30000,
+  "synthetic": true,
+  "demoOnly": true,
+  "deviceApisCalled": false,
+  "fixtureId": "FIXTURE-BKK-20260812-01",
+  "browserMatrix": [
+    "chromium-desktop",
+    "pixel-7"
+  ],
+  "covered": [
+    "deterministic JPEG fixture without camera access",
+    "deterministic synthetic route without geolocation access",
+    "exact 30000 millisecond foreground sample interval",
+    "background lifecycle fail-closed behavior",
+    "visible mock/demo-only and physical-evidence-not-collected disclosure"
+  ],
+  "playwrightCasesPassed": 24,
+  "physicalEvidence": {
+    "status": "not_collected"
+  },
+  "productionReady": false,
+  "tgoEndorsed": false,
+  "safetyThai": "ผลนี้มาจาก browser automation ที่ใช้ฟิกซ์เจอร์สังเคราะห์โดยไม่เรียกกล้องหรือ GPS ของอุปกรณ์ ไม่ใช่หลักฐานจากอุปกรณ์จริง"
+}

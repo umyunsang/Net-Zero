@@ -1,0 +1,59 @@
+{
+  "bridgeVersion": "3.6",
+  "kind": "google-docs-trusted-read",
+  "status": "complete",
+  "outputDir": "/Users/um-yunsang/Net-Zero/.planning/2026-08-12-net-zero-thailand-rewards-prd/bridge/trusted-read-prewrite",
+  "target": {
+    "documentId": "12By7hZepMf-odsEqBl0bEcUBSdWWtxJZ2hGC1nUKi0Y",
+    "title": "KCAMT Document",
+    "revisionId": "AIroW356H7FWLzoyycapGBv4rTvvbcffY22nJNmOxkW4-b86DYjx1R_ASFakNPBBMt4ZqFJLSoF2PulFeFRExlvvNEMfMZOVtYbVopdQo9sI",
+    "documentUrl": "https://docs.google.com/document/d/12By7hZepMf-odsEqBl0bEcUBSdWWtxJZ2hGC1nUKi0Y",
+    "selectedTabId": null
+  },
+  "dropdownMetadata": {
+    "status": "unavailable",
+    "resolvedTool": null,
+    "authoritative": false,
+    "count": 0
+  },
+  "controlAwareness": {
+    "hasProtectedControls": false,
+    "authoritativeDropdownCount": 0,
+    "opaqueControlCount": 0,
+    "affectedParagraphCount": 0,
+    "nativeElementCounts": {
+      "inlineObjectElement": 1
+    },
+    "preservationRequired": false,
+    "recommendedBehavior": "No protected controls were detected in the scanned scope."
+  },
+  "warnings": [],
+  "files": {
+    "document_result": {
+      "path": "/Users/um-yunsang/Net-Zero/.planning/2026-08-12-net-zero-thailand-rewards-prd/bridge/trusted-read-prewrite/document-result.json",
+      "bytes": 129394,
+      "sha256": "547c5ff2506b326b8b0bb3dd51eca2aa406d21faafecd498c834f484e35ab07e"
+    },
+    "control_inventory": {
+      "path": "/Users/um-yunsang/Net-Zero/.planning/2026-08-12-net-zero-thailand-rewards-prd/bridge/trusted-read-prewrite/control-inventory.json",
+      "bytes": 1959,
+      "sha256": "69972da4c494362c4ef2cb6dccd17ae60ca91c05cb0ec7ca5e9494be8955bc12"
+    },
+    "document_outline": {
+      "path": "/Users/um-yunsang/Net-Zero/.planning/2026-08-12-net-zero-thailand-rewards-prd/bridge/trusted-read-prewrite/document-outline.json",
+      "bytes": 33520,
+      "sha256": "ad3eda34b7f4380c8c7ec6d9062e08e2c2e9d8ce77a25ccfad3bf3ec73b02dd4"
+    },
+    "document_text": {
+      "path": "/Users/um-yunsang/Net-Zero/.planning/2026-08-12-net-zero-thailand-rewards-prd/bridge/trusted-read-prewrite/document-text.md",
+      "bytes": 10747,
+      "sha256": "927e543d4106a7796bd84aa4fb70b7ff049ecf458cfb18e870f787f9b0cf126b"
+    },
+    "receipt": {
+      "path": "/Users/um-yunsang/Net-Zero/.planning/2026-08-12-net-zero-thailand-rewards-prd/bridge/trusted-read-prewrite/receipt.json",
+      "bytes": 987,
+      "sha256": "f292e697a856e2515313bebee6dfbe3e27ffdf4082330ea7c88dd077b0c9f507"
+    }
+  },
+  "error": null
+}

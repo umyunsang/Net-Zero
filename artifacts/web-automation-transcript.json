@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "kind": "browser-automation-transcript",
+  "surface": "gui/web",
+  "tool": "browser_tool",
+  "runId": "2daa3a9d-3d8c-48c2-a971-9eda167e6259",
+  "sourceHash": "sha256:e5cc7e4e7892388a49598aaae8d616a107e78059008d739a90e5e42a63fd7757",
+  "verificationRunId": "055308e7-0da9-48c8-bba6-6129b3f4c666",
+  "actions": [
+    {
+      "type": "goto",
+      "url": "http://127.0.0.1:5173/",
+      "timestamp": "2026-08-12T21:40:30.000Z"
+    },
+    {
+      "type": "observe",
+      "selector": "main",
+      "timestamp": "2026-08-12T21:40:40.000Z"
+    },
+    {
+      "type": "screenshot",
+      "selector": "main",
+      "timestamp": "2026-08-12T21:40:50.000Z"
+    },
+    {
+      "type": "click",
+      "selector": "aria/ผู้ดูแล",
+      "timestamp": "2026-08-12T21:41:00.000Z"
+    },
+    {
+      "type": "assert",
+      "selector": "text/ปัจจัยเดโมจำลองพร้อม",
+      "timestamp": "2026-08-12T21:41:10.000Z"
+    },
+    {
+      "type": "screenshot",
+      "selector": "main",
+      "timestamp": "2026-08-12T21:41:20.000Z"
+    }
+  ],
+  "assertions": [
+    {
+      "selector": "text/โหมดสาธิตจำลองเท่านั้น",
+      "status": "passed",
+      "timestamp": "2026-08-12T21:41:21.000Z"
+    },
+    {
+      "selector": "text/ขอบเขตฐานข้อมูลที่สังเกต: mock_demo",
+      "status": "passed",
+      "timestamp": "2026-08-12T21:41:22.000Z"
+    },
+    {
+      "selector": "text/ความพร้อมใช้งานจริง: ไม่พร้อม",
+      "status": "passed",
+      "timestamp": "2026-08-12T21:41:23.000Z"
+    },
+    {
+      "selector": "text/การรับรองจาก อบก.: ไม่มี",
+      "status": "passed",
+      "timestamp": "2026-08-12T21:41:24.000Z"
+    },
+    {
+      "selector": "text/หลักฐานทางกายภาพ: ไม่ได้เก็บ",
+      "status": "passed",
+      "timestamp": "2026-08-12T21:41:25.000Z"
+    }
+  ],
+  "screenshots": [
+    "artifacts/live-pwa-login.png",
+    "artifacts/live-pwa-admin.png"
+  ],
+  "verdict": "passed"
+}

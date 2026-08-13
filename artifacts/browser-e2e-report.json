@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 4,
+  "kind": "browser-automation-test-report",
+  "verificationRunId": "055308e7-0da9-48c8-bba6-6129b3f4c666",
+  "startedAt": "2026-08-12T21:20:58.478Z",
+  "generatedAt": "2026-08-12T21:23:46.263Z",
+  "sourceHash": "sha256:e5cc7e4e7892388a49598aaae8d616a107e78059008d739a90e5e42a63fd7757",
+  "sourceStableDuringRun": true,
+  "command": "pnpm test:e2e",
+  "result": {
+    "exitCode": 0,
+    "projects": [
+      "chromium-desktop",
+      "pixel-7"
+    ],
+    "testsPassed": 24
+  },
+  "physicalGate": {
+    "runId": "2e910078-fc9d-40a7-8b26-fde804357868",
+    "sourceHash": "sha256:7fc753df345ad0e9b6ded2652cf9763f8abb4ec143a07959b714256c7dad6304",
+    "configHash": "sha256:d717acef5ff60fdd9c0b08292f28c116d2fb51406a7b274aa445846298acd2b2",
+    "fixtureHash": "sha256:e95ce7502ae21b8e8e45f59b87fe931cfb21aff2d5ecafd4b2bb808a52ce4c88",
+    "artifact": "artifacts/physical-device-gate.json"
+  },
+  "coverage": [
+    "visible Thai mock/synthetic/demo-only trust boundary",
+    "deterministic JPEG and route fixtures without device API calls",
+    "exact 30000 millisecond foreground intervals and background failure",
+    "reviewer evidence-open error, rewards, merchant, and readiness interactions",
+    "factor-only prerequisites never render aggregate production readiness"
+  ],
+  "supplementaryEvidence": [
+    {
+      "path": "artifacts/live-pwa-login.png",
+      "sha256": "sha256:2fdb850ab769d05b39f024df27e9bba175fa0ee7bc19661e34a2bfad5ae93ca6",
+      "gateInput": false,
+      "sourceBinding": "supplementary-live-observation"
+    },
+    {
+      "path": "artifacts/live-pwa-admin.png",
+      "sha256": "sha256:d111ddd9f948757f13f47c4a3c22aea8a0584841dfa99069d74310e5a5085c2e",
+      "gateInput": false,
+      "sourceBinding": "supplementary-live-observation"
+    },
+    {
+      "path": "artifacts/web-automation-transcript.json",
+      "sha256": "sha256:6d481fd17c2292fa636047b325f71416dc700b0074740d65e510d01cfd387ae5",
+      "gateInput": false,
+      "sourceBinding": "supplementary-live-observation"
+    }
+  ],
+  "verdict": "passed"
+}
