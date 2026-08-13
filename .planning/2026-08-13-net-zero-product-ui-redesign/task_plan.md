@@ -94,6 +94,23 @@ Phase 8
 - [x] Rerun focused typecheck, E2E, visual, and console checks
 - **Status:** complete
 
+### Phase 9: Fable 5 responsive fidelity and shared brand lockup
+- [x] Trace the live Vite process to the active `design-canopy-press` worktree and compare it with the seven approved references
+- [x] Restore the approved white/green/orange shell, point hierarchy, CTA, containers, and 390/430/853/1024/1440/1586 responsive contracts while preserving Fable typography
+- [x] Replace the oversized native language select with a compact TH/EN/KO popover and keep `Net Zero` invariant
+- [x] Apply one new shared Net Zero wordmark/symbol to Welcome, consumer, and operational headers
+- [x] Keep the full Fable activity scenes in the activity hub and add focused Fable scene thumbnails to all three Home activity cards
+- [x] Verify reward ordering, 1024 px copy width, no horizontal overflow, production build, typecheck, repository tests, and desktop/Pixel E2E
+- **Status:** complete
+
+### Phase 10: Cloudflare public presentation demo
+- [ ] Confirm the active worktree, runtime dependencies, Cloudflare authentication, and mock-only frontend/API boundary
+- [ ] Add the minimum public-demo configuration without changing the approved consumer UX or reward semantics
+- [ ] Validate build and Cloudflare configuration locally before external deployment
+- [ ] Deploy the mock presentation surface and verify the public URL, demo flow, responsive layout, and multilingual switching
+- [ ] Record the deployment URL, version evidence, and any remaining infrastructure boundary
+- **Status:** pending source publication
+
 ## Constraints
 - Do not use the PPT as a page-layout or typography template.
 - Preserve the three MVP activities, scoring rules, verification state machines, point ledger, voucher lifecycle, Thai-first UI, and mock-demo/production separation.

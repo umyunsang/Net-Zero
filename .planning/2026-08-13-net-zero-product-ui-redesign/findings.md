@@ -227,6 +227,15 @@
 - Preserve the approved wallet skeleton, carbon-impact factors, voucher costs, evidence verification, and production scoring behavior. New reward overrides must be explicit mock-demo policy rather than altered carbon factors.
 - The language selector is a global product control, not another primary navigation destination. Selection should persist locally and update the document language plus all visible role surfaces without reload.
 - The user reattached seven approved renders and explicitly rejected current visual drift. Those renders are the visual authority for mobile Home, Activity, Wallet, tree detail, voucher detail and desktop Home/Wallet: white canvas, green line-illustration language, mobile top header plus bottom tabs, desktop left sidebar, generous whitespace, and restrained bordered cards.
+
+## Phase 9 live Fable fidelity findings
+- Port 5173 is served by `.claude/worktrees/design-canopy-press`, not the main checkout. All Phase 9 product edits and live verification therefore target that worktree.
+- The Fable 5 commit introduced the desired Fraunces/Sarabun/Noto Serif Thai typography, WebGL city, and three local SVG activity scenes, but its paper palette and intermediate-width composition drifted from approved `DS@v1`.
+- At 1024 px the pre-fix Home grid could collapse `.balance-copy` to zero width. A dedicated 1024–1199 contract now reserves 117 px or more for the score copy beside a 176 px city scene and 280 px secondary column.
+- The approved and user-retained Fable visuals are local components, not remote images: `CityCanvas`/`CitySkyline` for the point hero and `ActivityScene` for bus, recycling, and tree. The Home compact cards now use cropped views of those same scene paths rather than substituting another icon family.
+- The new brand lockup is one shared `BrandMark`: a zero-ring/leaf symbol, orange terminal point, and invariant Fraunces `Net Zero` wordmark. It is used by Welcome, consumer, and operational headers and is never translated.
+- Final live measurements show zero horizontal overflow at 430 and 1440 px; Home activity thumbnails are 92×58 at 430 px, full activity scenes are 388×82, the 1440 px hero/secondary tracks are 712/340 px, and primary navigation remains four destinations.
+- The requested Cloudflare target is a publicly reachable mock presentation demo for PT audiences, not an operational production service. It must not connect production data, administrator workflows, or real-user state.
 - The new leaderboard and language selector must be integrated into that approved composition rather than creating another navigation job or presentation-style surface.
 
 ## Phase 7 typography acceptance
