@@ -1,5 +1,7 @@
 import type { FormHTMLAttributes, ReactNode, SVGProps } from "react";
 import type { Activity, RequestState } from "./product-types";
+import { useI18n } from "./i18n";
+import { translateCurrent } from "./localization";
 
 type IconName =
   | "home"
@@ -18,7 +20,9 @@ type IconName =
   | "check"
   | "info"
   | "back"
-  | "logout";
+  | "logout"
+  | "help"
+  | "rank";
 
 export function Icon({ name, ...props }: { name: IconName } & SVGProps<SVGSVGElement>) {
   const common = {
@@ -50,6 +54,8 @@ export function Icon({ name, ...props }: { name: IconName } & SVGProps<SVGSVGEle
     info: <><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/></>,
     back: <><path d="m15 5-7 7 7 7"/></>,
     logout: <><path d="M10 4H5v16h5M14 8l4 4-4 4M18 12H9"/></>,
+    help: <><circle cx="12" cy="12" r="9"/><path d="M9.6 9a2.6 2.6 0 1 1 3.7 2.35c-.85.42-1.3.9-1.3 1.9M12 17h.01"/></>,
+    rank: <><path d="M8 4h8v4a4 4 0 0 1-8 0V4Z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 12v5M8.5 21h7M9 17h6"/></>,
   };
   return <svg {...common}>{paths[name]}</svg>;
 }
@@ -60,20 +66,21 @@ export function ActivityIcon({ activity, ...props }: { activity: Activity } & Om
 
 export function BrandMark({ compact = false }: { compact?: boolean }) {
   return (
-    <span className="brand-mark" aria-label="ก้าวลดคาร์บอน">
+    <span className="brand-mark" aria-label="Net Zero">
       <svg viewBox="0 0 38 38" aria-hidden="true">
         <path d="M30.5 5.5C18 6 8.7 11.8 7.8 22.7c-.4 5.4 3.8 9.6 9.2 8.7 8.1-1.3 12.7-10.7 13.5-25.9Z" fill="currentColor"/>
         <path d="M5.5 33C10.2 22.4 16 16.2 25.5 10" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-        <circle cx="27.8" cy="4.8" r="2.7" fill="#E77800" stroke="white" strokeWidth="1.2"/>
+        <circle cx="27.8" cy="4.8" r="2.7" fill="currentColor" stroke="white" strokeWidth="1.2"/>
       </svg>
-      {!compact && <strong>ก้าวลดคาร์บอน</strong>}
+      {!compact && <strong>Net Zero</strong>}
     </span>
   );
 }
 
 export function Notice({ state, error, success = "บันทึกสำเร็จ" }: { state: RequestState; error: string; success?: string }) {
-  if (state === "loading") return <p className="notice" role="status">กำลังดำเนินการ…</p>;
-  if (state === "success") return <p className="notice success" role="status">{success}</p>;
+  const { t } = useI18n();
+  if (state === "loading") return <p className="notice" role="status">{t("กำลังดำเนินการ…")}</p>;
+  if (state === "success") return <p className="notice success" role="status">{t(success)}</p>;
   if (state === "error") return <p className="notice error" role="alert">{error}</p>;
   return null;
 }
@@ -88,7 +95,7 @@ export function ThaiForm({ children, ...props }: FormHTMLAttributes<HTMLFormElem
       {...props}
       onInvalid={(event) => {
         const field = event.target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
-        const message = field.validity.valueMissing
+        const message = translateCurrent(field.validity.valueMissing
           ? "กรุณากรอกข้อมูลช่องนี้"
           : field.validity.typeMismatch
             ? "รูปแบบข้อมูลไม่ถูกต้อง"
@@ -98,7 +105,7 @@ export function ThaiForm({ children, ...props }: FormHTMLAttributes<HTMLFormElem
                 ? "ค่าที่กรอกสูงกว่าค่าสูงสุดที่อนุญาต"
                 : field.validity.stepMismatch
                   ? "ค่าที่กรอกไม่ตรงกับช่วงที่อนุญาต"
-                  : "กรุณาตรวจสอบข้อมูลช่องนี้";
+                : "กรุณาตรวจสอบข้อมูลช่องนี้");
         field.setCustomValidity(message);
         props.onInvalid?.(event);
       }}

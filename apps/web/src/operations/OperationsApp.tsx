@@ -2,6 +2,7 @@ import { type FormEvent, useEffect, useState } from "react";
 import { api, idempotencyKey, openEvidence } from "../api";
 import type { Activity, Claim, DemoReadiness, Factor, RequestState, Role } from "../product-types";
 import { BrandMark, Notice, ThaiForm, UtilityPanel } from "../ui";
+import { LanguageSwitcher, useI18n } from "../i18n";
 
 type UtilityPage = "review" | "merchant" | "admin";
 
@@ -58,10 +59,12 @@ const factorStatusLabels: Record<Factor["status"], string> = {
 };
 
 function UtilityDisclosure() {
-  return <p className="utility-disclosure">พื้นที่นี้ใช้สำหรับการปฏิบัติงานในเวอร์ชันสาธิต ข้อมูลจำลองแยกจากข้อมูลจริง และค่าประมาณไม่ใช่คาร์บอนเครดิตที่ได้รับการรับรอง</p>;
+  const { t } = useI18n();
+  return <p className="utility-disclosure">{t("พื้นที่นี้ใช้สำหรับการปฏิบัติงานในเวอร์ชันสาธิต ข้อมูลจำลองแยกจากข้อมูลจริง และค่าประมาณไม่ใช่คาร์บอนเครดิตที่ได้รับการรับรอง")}</p>;
 }
 
 function ReviewQueue() {
+  const { t, locale } = useI18n();
   const [items, setItems] = useState<Claim[]>([]);
   const [counts, setCounts] = useState<Record<string, string>>({});
   const [state, setState] = useState<RequestState>("loading");
@@ -77,7 +80,7 @@ function ReviewQueue() {
       setItems(result.items);
       setState("success");
     }).catch((cause: unknown) => {
-      setError(cause instanceof Error ? cause.message : "โหลดคำขอไม่ได้");
+      setError(cause instanceof Error ? cause.message : t("โหลดคำขอไม่ได้"));
       setState("error");
     });
   }, []);
@@ -85,7 +88,7 @@ function ReviewQueue() {
   async function decide(item: Claim, decision: "approve" | "reduce" | "reject") {
     const approvedItemCount = Number(counts[item.claim.id]);
     if (item.claim.activity === "recycling" && decision !== "reject" && (!Number.isSafeInteger(approvedItemCount) || approvedItemCount < 0)) {
-      setError("ระบุจำนวนที่อนุมัติก่อนตัดสินใจ");
+      setError(t("ระบุจำนวนที่อนุมัติก่อนตัดสินใจ"));
       setState("error");
       return;
     }
@@ -97,7 +100,7 @@ function ReviewQueue() {
       });
       setItems((current) => current.filter((row) => row.claim.id !== item.claim.id));
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "บันทึกผลไม่ได้");
+      setError(cause instanceof Error ? cause.message : t("บันทึกผลไม่ได้"));
       setState("error");
     }
   }
@@ -107,33 +110,33 @@ function ReviewQueue() {
     try {
       await openEvidence(id);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "เปิดหลักฐานจำลองไม่ได้");
+      setError(cause instanceof Error ? cause.message : t("เปิดหลักฐานจำลองไม่ได้"));
       setState("error");
     }
   }
 
   return (
     <>
-      <header className="utility-page-heading"><p>สิทธิ์ผู้ตรวจสอบ</p><h1>คิวตรวจหลักฐาน</h1></header>
+      <header className="utility-page-heading"><p>{t("สิทธิ์ผู้ตรวจสอบ")}</p><h1>{t("คิวตรวจหลักฐาน")}</h1></header>
       <Notice state={state} error={error} />
-      {state === "success" && items.length === 0 && <p className="utility-empty">ไม่มีรายการ</p>}
+      {state === "success" && items.length === 0 && <p className="utility-empty">{t("ไม่มีรายการ")}</p>}
       <ul className="utility-list">
         {items.map((item) => (
           <li key={item.claim.id}>
-            <div className="utility-list-title"><strong>{activityLabels[item.claim.activity]}</strong><span className={`status ${item.claim.status}`}>{claimStatusLabels[item.claim.status]}</span></div>
-            <span className="status mock-demo">คำขอจำลอง · {item.claim.data_scope} · เดโมเท่านั้น</span>
-            {item.claim.fixture_id && <small>ฟิกซ์เจอร์สังเคราะห์ {item.claim.fixture_id}</small>}
-            <small>{new Date(item.claim.submitted_at).toLocaleString("th-TH")} · {item.claim.reason_code ? claimReasonLabels[item.claim.reason_code] ?? "มีเหตุผลจากระบบที่ยังไม่รู้จัก" : "ยังไม่มีเหตุผลประกอบ"}</small>
-            <small>ผลกระทบ: {impactStatusLabels[item.claim.impact_status]} · คะแนน {item.claim.awarded_points}</small>
-            {item.claim.evidence_ids?.map((id) => <button className="secondary-button" key={id} onClick={() => void handleOpenEvidence(id)}>เปิดหลักฐาน {id.slice(0, 8)}</button>)}
+            <div className="utility-list-title"><strong>{t(activityLabels[item.claim.activity])}</strong><span className={`status ${item.claim.status}`}>{t(claimStatusLabels[item.claim.status])}</span></div>
+            <span className="status mock-demo">{t("คำขอจำลอง")} · {item.claim.data_scope} · {t("เดโมเท่านั้น")}</span>
+            {item.claim.fixture_id && <small>{t("ฟิกซ์เจอร์สังเคราะห์")} {item.claim.fixture_id}</small>}
+            <small>{new Date(item.claim.submitted_at).toLocaleString(locale)} · {t(item.claim.reason_code ? claimReasonLabels[item.claim.reason_code] ?? "มีเหตุผลจากระบบที่ยังไม่รู้จัก" : "ยังไม่มีเหตุผลประกอบ")}</small>
+            <small>{t("ผลกระทบ")}: {t(impactStatusLabels[item.claim.impact_status])} · {t("คะแนน")} {item.claim.awarded_points}</small>
+            {item.claim.evidence_ids?.map((id) => <button className="secondary-button" key={id} onClick={() => void handleOpenEvidence(id)}>{t("เปิดหลักฐาน")} {id.slice(0, 8)}</button>)}
             {item.claim.activity === "bus" ? (
-              <p className="utility-disclosure">รายการรถโดยสารต้องผ่านกฎตรวจอัตโนมัติครบทุกข้อ ผู้ตรวจสอบไม่สามารถเปลี่ยนรายการนี้เป็นสถานะผ่านได้</p>
+              <p className="utility-disclosure">{t("รายการรถโดยสารต้องผ่านกฎตรวจอัตโนมัติครบทุกข้อ ผู้ตรวจสอบไม่สามารถเปลี่ยนรายการนี้เป็นสถานะผ่านได้")}</p>
             ) : (
               <div className="review-actions">
-                {item.claim.activity === "recycling" && <input aria-label="จำนวนที่อนุมัติ" type="number" min="0" step="1" placeholder="จำนวนที่อนุมัติ" value={counts[item.claim.id] ?? ""} onChange={(event) => setCounts((current) => ({ ...current, [item.claim.id]: event.target.value }))} />}
-                <button onClick={() => void decide(item, "approve")}>อนุมัติ</button>
-                {item.claim.activity === "recycling" && <button onClick={() => void decide(item, "reduce")}>ลดจำนวน</button>}
-                <button className="secondary-button" onClick={() => void decide(item, "reject")}>ปฏิเสธ</button>
+                {item.claim.activity === "recycling" && <input aria-label={t("จำนวนที่อนุมัติ")} type="number" min="0" step="1" placeholder={t("จำนวนที่อนุมัติ")} value={counts[item.claim.id] ?? ""} onChange={(event) => setCounts((current) => ({ ...current, [item.claim.id]: event.target.value }))} />}
+                <button onClick={() => void decide(item, "approve")}>{t("อนุมัติ")}</button>
+                {item.claim.activity === "recycling" && <button onClick={() => void decide(item, "reduce")}>{t("ลดจำนวน")}</button>}
+                <button className="secondary-button" onClick={() => void decide(item, "reject")}>{t("ปฏิเสธ")}</button>
               </div>
             )}
           </li>
@@ -144,6 +147,7 @@ function ReviewQueue() {
 }
 
 function MerchantWorkspace() {
+  const { t } = useI18n();
   const [state, setState] = useState<RequestState>("idle");
   const [error, setError] = useState("");
   const [redemption, setRedemption] = useState<{ code: string; voucherId: string }>();
@@ -162,7 +166,7 @@ function MerchantWorkspace() {
       formElement.reset();
       setState("success");
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "ใช้บัตรไม่ได้");
+      setError(cause instanceof Error ? cause.message : t("ใช้บัตรไม่ได้"));
       setState("error");
     }
   }
@@ -178,24 +182,25 @@ function MerchantWorkspace() {
       formElement.reset();
       setState("success");
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "ยกเลิกบัตรไม่ได้");
+      setError(cause instanceof Error ? cause.message : t("ยกเลิกบัตรไม่ได้"));
       setState("error");
     }
   }
 
   return (
     <>
-      <header className="utility-page-heading"><p>ร้านค้าสาธิต</p><h1>ใช้หรือยกเลิกบัตรรางวัล</h1></header>
-      <UtilityPanel title="สแกนเพื่อใช้ครั้งเดียว"><ThaiForm onSubmit={scan}><label>รหัสบัตร<input name="code" required autoFocus /></label><button>ตรวจและใช้สิทธิ์</button></ThaiForm></UtilityPanel>
-      <UtilityPanel title="ยกเลิกก่อนใช้และคืนคะแนน"><ThaiForm onSubmit={cancel}><label>รหัส UUID ของบัตร<input name="voucherId" type="text" required /></label><button className="secondary-button">ยกเลิกบัตร</button></ThaiForm></UtilityPanel>
-      <Notice state={state} error={error} success="ใช้สิทธิ์สำเร็จและปิดรหัสบัตรแล้ว" />
-      {redemption && <section className="redemption-receipt" aria-label="หลักฐานการใช้บัตร"><div><span>ผลการใช้บัตร</span><strong>ใช้สิทธิ์สำเร็จ</strong></div><span className="status redeemed">ใช้แล้ว</span><small>รหัส {redemption.code} · บัตร {redemption.voucherId}</small><p>รหัสนี้ถูกปิดหลังใช้ครั้งแรก ร้านค้าสาธิตไม่สามารถใช้ซ้ำได้</p></section>}
-      <p className="utility-disclosure">บัตรที่ใช้แล้วหรือหมดอายุยกเลิกไม่ได้ และบัตรหมดอายุไม่คืนคะแนน</p>
+      <header className="utility-page-heading"><p>{t("ร้านค้าสาธิต")}</p><h1>{t("ใช้หรือยกเลิกบัตรรางวัล")}</h1></header>
+      <UtilityPanel title={t("สแกนเพื่อใช้ครั้งเดียว")}><ThaiForm onSubmit={scan}><label>{t("รหัสบัตร")}<input name="code" required autoFocus /></label><button>{t("ตรวจและใช้สิทธิ์")}</button></ThaiForm></UtilityPanel>
+      <UtilityPanel title={t("ยกเลิกก่อนใช้และคืนคะแนน")}><ThaiForm onSubmit={cancel}><label>{t("รหัส UUID ของบัตร")}<input name="voucherId" type="text" required /></label><button className="secondary-button">{t("ยกเลิกบัตร")}</button></ThaiForm></UtilityPanel>
+      <Notice state={state} error={error} success={t("ใช้สิทธิ์สำเร็จและปิดรหัสบัตรแล้ว")} />
+      {redemption && <section className="redemption-receipt" aria-label={t("หลักฐานการใช้บัตร")}><div><span>{t("ผลการใช้บัตร")}</span><strong>{t("ใช้สิทธิ์สำเร็จ")}</strong></div><span className="status redeemed">{t("ใช้แล้ว")}</span><small>{t("รหัส")} {redemption.code} · {t("บัตร")} {redemption.voucherId}</small><p>{t("รหัสนี้ถูกปิดหลังใช้ครั้งแรก ร้านค้าสาธิตไม่สามารถใช้ซ้ำได้")}</p></section>}
+      <p className="utility-disclosure">{t("บัตรที่ใช้แล้วหรือหมดอายุยกเลิกไม่ได้ และบัตรหมดอายุไม่คืนคะแนน")}</p>
     </>
   );
 }
 
 function AdminWorkspace() {
+  const { t, locale } = useI18n();
   const [factors, setFactors] = useState<Factor[]>([]);
   const [readiness, setReadiness] = useState<DemoReadiness>();
   const [confirmed, setConfirmed] = useState<Record<string, boolean>>({});
@@ -205,7 +210,7 @@ function AdminWorkspace() {
   function load() {
     Promise.all([api<{ items: Factor[] }>("/admin/factors"), api<DemoReadiness>("/admin/factors/demo-readiness")])
       .then(([catalog, status]) => { setFactors(catalog.items); setReadiness(status); setState("success"); })
-      .catch((cause: unknown) => { setError(cause instanceof Error ? cause.message : "โหลดปัจจัยไม่ได้"); setState("error"); });
+      .catch((cause: unknown) => { setError(cause instanceof Error ? cause.message : t("โหลดปัจจัยไม่ได้")); setState("error"); });
   }
 
   useEffect(load, []);
@@ -218,7 +223,7 @@ function AdminWorkspace() {
     try {
       assumptions = JSON.parse(String(form.get("assumptions") || "{}")) as Record<string, unknown>;
     } catch {
-      setError("สมมติฐานต้องเป็น JSON ที่ถูกต้อง");
+      setError(t("สมมติฐานต้องเป็น JSON ที่ถูกต้อง"));
       setState("error");
       return;
     }
@@ -229,14 +234,14 @@ function AdminWorkspace() {
       formElement.reset();
       load();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "สร้างปัจจัยไม่ได้");
+      setError(cause instanceof Error ? cause.message : t("สร้างปัจจัยไม่ได้"));
       setState("error");
     }
   }
 
   async function approve(id: string) {
     if (!confirmed[id]) {
-      setError("ต้องยืนยันการตรวจทานครบทุกหัวข้อก่อนส่งตรวจทานเดโมจำลอง");
+      setError(t("ต้องยืนยันการตรวจทานครบทุกหัวข้อก่อนส่งตรวจทานเดโมจำลอง"));
       setState("error");
       return;
     }
@@ -244,39 +249,39 @@ function AdminWorkspace() {
       await api(`/admin/factors/${id}/approve`, "PATCH");
       load();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "ส่งตรวจทานเดโมจำลองไม่ได้");
+      setError(cause instanceof Error ? cause.message : t("ส่งตรวจทานเดโมจำลองไม่ได้"));
       setState("error");
     }
   }
 
   return (
     <>
-      <header className="utility-page-heading"><p>ผู้ดูแลเดโมจำลอง</p><h1>ปัจจัยคำนวณแบบปิดเมื่อไม่พร้อม</h1></header>
+      <header className="utility-page-heading"><p>{t("ผู้ดูแลเดโมจำลอง")}</p><h1>{t("ปัจจัยคำนวณแบบปิดเมื่อไม่พร้อม")}</h1></header>
       <Notice state={state} error={error} />
-      <UtilityPanel title="สถานะความพร้อมของเดโมจำลอง">
-        <strong>{readiness?.mockDemoReady ? "ปัจจัยเดโมจำลองพร้อม" : "ปัจจัยเดโมจำลองยังไม่พร้อม"}</strong>
-        {readiness?.databaseScope && <p>ขอบเขตฐานข้อมูลที่สังเกต: {readiness.databaseScope}</p>}
-        <p>ปัจจัยสำหรับใช้งานจริง: {readiness?.productionFactorsReady ? "ครบเฉพาะปัจจัย" : "ยังไม่ครบ"}</p>
-        <p>ความพร้อมใช้งานจริง: {readiness?.productionReady ? "จริง" : "ไม่พร้อม"} · การรับรองจาก อบก.: {readiness?.tgoEndorsed ? "มี" : "ไม่มี"} · หลักฐานทางกายภาพ: {readiness?.physicalEvidence ? "มี" : "ไม่ได้เก็บ"}</p>
+      <UtilityPanel title={t("สถานะความพร้อมของเดโมจำลอง")}>
+        <strong>{t(readiness?.mockDemoReady ? "ปัจจัยเดโมจำลองพร้อม" : "ปัจจัยเดโมจำลองยังไม่พร้อม")}</strong>
+        {readiness?.databaseScope && <p>{t("ขอบเขตฐานข้อมูลที่สังเกต")}: {readiness.databaseScope}</p>}
+        <p>{t("ปัจจัยสำหรับใช้งานจริง")}: {t(readiness?.productionFactorsReady ? "ครบเฉพาะปัจจัย" : "ยังไม่ครบ")}</p>
+        <p>{t("ความพร้อมใช้งานจริง")}: {t(readiness?.productionReady ? "จริง" : "ไม่พร้อม")} · {t("การรับรองจาก อบก.")}: {t(readiness?.tgoEndorsed ? "มี" : "ไม่มี")} · {t("หลักฐานทางกายภาพ")}: {t(readiness?.physicalEvidence ? "มี" : "ไม่ได้เก็บ")}</p>
         <ul className="utility-list compact">
-          {(["bus", "recycling", "tree"] as const).map((activity) => <li key={activity}><strong>{activityLabels[activity]}</strong><span>{readiness?.activities[activity]?.ready ? "พร้อมสำหรับเดโมจำลอง" : "ยังไม่พร้อมสำหรับเดโมจำลอง"}</span>{readiness?.activities[activity]?.factorId && <small>ปัจจัย {readiness.activities[activity].factorId}</small>}</li>)}
+          {(["bus", "recycling", "tree"] as const).map((activity) => <li key={activity}><strong>{t(activityLabels[activity])}</strong><span>{t(readiness?.activities[activity]?.ready ? "พร้อมสำหรับเดโมจำลอง" : "ยังไม่พร้อมสำหรับเดโมจำลอง")}</span>{readiness?.activities[activity]?.factorId && <small>{t("ปัจจัย")} {readiness.activities[activity].factorId}</small>}</li>)}
         </ul>
       </UtilityPanel>
-      <UtilityPanel title="เพิ่มปัจจัยฉบับร่าง">
+      <UtilityPanel title={t("เพิ่มปัจจัยฉบับร่าง")}>
         <ThaiForm onSubmit={create}>
-          <label>กิจกรรม<select name="activity"><option value="bus">รถโดยสาร</option><option value="recycling">รีไซเคิล</option><option value="tree">ต้นไม้</option></select></label>
-          <label>รหัส<input name="code" required /></label><label>เวอร์ชัน<input name="version" required /></label><label>ค่า<input name="value" inputMode="decimal" required /></label><label>หน่วย<input name="unit" required /></label><label>URL แหล่งอ้างอิง<input name="sourceUrl" type="url" required /></label><label>รหัสวิธีวิทยา<input name="methodologyCode" required /></label><label>วันที่เริ่มใช้<input name="effectiveAt" type="datetime-local" required /></label><label>สมมติฐาน JSON<textarea name="assumptions" defaultValue="{}" required /></label><label>คำชี้แจงภาษาไทย<textarea name="disclaimerThai" required /></label><label>ข้อความอธิบายพร็อกซีภาษาไทย<textarea name="proxyCopyThai" required /></label><button>สร้างฉบับร่าง</button>
+          <label>{t("กิจกรรม")}<select name="activity"><option value="bus">{t("รถโดยสาร")}</option><option value="recycling">{t("รีไซเคิล")}</option><option value="tree">{t("ต้นไม้")}</option></select></label>
+          <label>{t("รหัส")}<input name="code" required /></label><label>{t("เวอร์ชัน")}<input name="version" required /></label><label>{t("ค่า")}<input name="value" inputMode="decimal" required /></label><label>{t("หน่วย")}<input name="unit" required /></label><label>{t("URL แหล่งอ้างอิง")}<input name="sourceUrl" type="url" required /></label><label>{t("รหัสวิธีวิทยา")}<input name="methodologyCode" required /></label><label>{t("วันที่เริ่มใช้")}<input name="effectiveAt" type="datetime-local" required /></label><label>{t("สมมติฐาน JSON")}<textarea name="assumptions" defaultValue="{}" required /></label><label>{t("คำชี้แจงภาษาไทย")}<textarea name="disclaimerThai" required /></label><label>{t("ข้อความอธิบายพร็อกซีภาษาไทย")}<textarea name="proxyCopyThai" required /></label><button>{t("สร้างฉบับร่าง")}</button>
         </ThaiForm>
       </UtilityPanel>
       <ul className="utility-list factor-list">
         {factors.map((factor) => (
           <li key={factor.id}>
-            <div className="utility-list-title"><strong>{activityLabels[factor.activity]} · {factor.code} · {factor.version}</strong><span className={`status ${factor.status}`}>{factor.status === "draft" ? "ฉบับร่างสำหรับใช้งานจริง" : factorStatusLabels[factor.status]}</span></div>
-            {factor.mock_approval_scope === "mock_demo" && factor.mock_is_mock === true && factor.mock_demo_only === true && <span className="status mock-demo">ทบทวน mock_demo แล้ว · ใช้สำหรับเดโมเท่านั้น</span>}
-            {factor.mock_approved_at && <small>ผู้ทบทวนเดโม {factor.mock_approved_role} · {factor.mock_approved_by} · {new Date(factor.mock_approved_at).toLocaleString("th-TH")}</small>}
-            {factor.mock_reviewed_digest && <small>รหัสตรวจทาน {factor.mock_reviewed_digest}</small>}
-            <small>{factor.value} {factor.unit} · {factor.methodology_code}</small><a href={factor.source_url} target="_blank" rel="noreferrer">เปิดแหล่งอ้างอิง</a><p>{factor.proxy_copy_th}</p><p className="utility-disclosure">{factor.disclaimer_th}</p>
-            {factor.status === "draft" && factor.mock_approval_scope !== "mock_demo" && <div className="review-actions"><label className="switch-row"><input type="checkbox" checked={confirmed[factor.id] ?? false} onChange={(event) => setConfirmed((current) => ({ ...current, [factor.id]: event.target.checked }))} />ตรวจทานค่า หน่วย แหล่งอ้างอิง วิธีวิทยา เวอร์ชัน วันที่ สมมติฐาน และข้อความภาษาไทยแล้ว</label><button onClick={() => void approve(factor.id)}>ส่งตรวจทานเดโมจำลอง</button></div>}
+            <div className="utility-list-title"><strong>{t(activityLabels[factor.activity])} · {factor.code} · {factor.version}</strong><span className={`status ${factor.status}`}>{t(factor.status === "draft" ? "ฉบับร่างสำหรับใช้งานจริง" : factorStatusLabels[factor.status])}</span></div>
+            {factor.mock_approval_scope === "mock_demo" && factor.mock_is_mock === true && factor.mock_demo_only === true && <span className="status mock-demo">{t("ทบทวน mock_demo แล้ว")} · {t("ใช้สำหรับเดโมเท่านั้น")}</span>}
+            {factor.mock_approved_at && <small>{t("ผู้ทบทวนเดโม")} {factor.mock_approved_role} · {factor.mock_approved_by} · {new Date(factor.mock_approved_at).toLocaleString(locale)}</small>}
+            {factor.mock_reviewed_digest && <small>{t("รหัสตรวจทาน")} {factor.mock_reviewed_digest}</small>}
+            <small>{factor.value} {factor.unit} · {factor.methodology_code}</small><a href={factor.source_url} target="_blank" rel="noreferrer">{t("เปิดแหล่งอ้างอิง")}</a><p>{factor.proxy_copy_th}</p><p className="utility-disclosure">{factor.disclaimer_th}</p>
+            {factor.status === "draft" && factor.mock_approval_scope !== "mock_demo" && <div className="review-actions"><label className="switch-row"><input type="checkbox" checked={confirmed[factor.id] ?? false} onChange={(event) => setConfirmed((current) => ({ ...current, [factor.id]: event.target.checked }))} />{t("ตรวจทานค่า หน่วย แหล่งอ้างอิง วิธีวิทยา เวอร์ชัน วันที่ สมมติฐาน และข้อความภาษาไทยแล้ว")}</label><button onClick={() => void approve(factor.id)}>{t("ส่งตรวจทานเดโมจำลอง")}</button></div>}
           </li>
         ))}
       </ul>
@@ -286,13 +291,14 @@ function AdminWorkspace() {
 }
 
 export function OperationsApp({ role, onSwitchRole, onLogout }: { role: Exclude<Role, "user">; onSwitchRole: (role: Role) => void; onLogout: () => void }) {
+  const { t } = useI18n();
   const [page, setPage] = useState<UtilityPage>(role === "merchant" ? "merchant" : role === "admin" ? "admin" : "review");
-  const links: Array<[UtilityPage, string]> = role === "merchant" ? [["merchant", "ร้านค้า"]] : role === "admin" ? [["admin", "ปัจจัย"], ["review", "คิวตรวจ"]] : [["review", "คิวตรวจ"]];
+  const links: Array<[UtilityPage, string]> = role === "merchant" ? [["merchant", t("ร้านค้า")]] : role === "admin" ? [["admin", t("ปัจจัย")], ["review", t("คิวตรวจ")]] : [["review", t("คิวตรวจ")]];
   const content = page === "merchant" ? <MerchantWorkspace /> : page === "admin" ? <AdminWorkspace /> : <ReviewQueue />;
   return (
     <div className="utility-shell">
-      <header className="utility-topbar"><BrandMark /><div><small>พื้นที่ปฏิบัติงาน</small><strong>{roleLabels[role]}</strong></div><button className="secondary-button" onClick={() => onSwitchRole("user")}>กลับไปแอปผู้ใช้</button><button className="text-button" onClick={onLogout}>ออกจากระบบ</button></header>
-      <nav className="utility-nav" aria-label="เมนูหลัก">{links.map(([id, label]) => <button key={id} className={page === id ? "active" : ""} onClick={() => setPage(id)}>{label}</button>)}</nav>
+      <header className="utility-topbar"><BrandMark /><div><small>{t("พื้นที่ปฏิบัติงาน")}</small><strong>{t(roleLabels[role])}</strong></div><LanguageSwitcher /><button className="secondary-button" onClick={() => onSwitchRole("user")}>{t("กลับไปแอปผู้ใช้")}</button><button className="text-button" onClick={onLogout}>{t("ออกจากระบบ")}</button></header>
+      <nav className="utility-nav" aria-label={t("เมนูหลัก")}>{links.map(([id, label]) => <button key={id} className={page === id ? "active" : ""} onClick={() => setPage(id)}>{label}</button>)}</nav>
       <main>{content}</main>
       <footer><UtilityDisclosure /></footer>
     </div>

@@ -346,7 +346,7 @@ describeIntegration("real API flow", () => {
       "select count(*)::int count,coalesce(sum(points),0)::int points from point_ledger where claim_id=$1",
       [claim.body.claim.id],
     );
-    expect(ledger.rows[0]).toEqual({ count: 1, points: 23 });
+    expect(ledger.rows[0]).toEqual({ count: 1, points: 15 });
     await request(app.getHttpServer()).post(`/api/review/claims/${claim.body.claim.id}/corrections`).set(bearer(admin)).send({ correctedTotalKgCo2e: "8.000000", reason: "แก้ค่าประมาณหลังทบทวน" }).expect(201);
     const corrected = await app.get(DatabaseService).query<{ carbon: string; points: number; corrections: number }>(
       `select
@@ -697,16 +697,20 @@ describeIntegration("real API flow", () => {
     });
   });
 
-  it("sends recycling through QR and reviewer confirmation, and preserves the bus pending boundary path", async () => {
+  it("auto-verifies demo recycling from its QR submission and preserves the bus pending boundary path", async () => {
     const photo = Buffer.from("recycling photo");
     const photoHash = digest(photo);
     const photoInit = await request(app.getHttpServer()).post("/api/evidence/init").set(bearer(user)).send({ kind: "photo", mimeType: "image/jpeg", sizeBytes: photo.length, sha256: photoHash, capture: { capturedAt: new Date().toISOString(), camera: { make: "Test", model: "Camera" } } }).expect(201);
     await request(app.getHttpServer()).post(`/api/evidence/${photoInit.body.uploadId}/content`).set(bearer(user)).set("x-upload-token", photoInit.body.uploadToken).set("content-type", "image/jpeg").send(photo).expect(201);
     const photoEvidence = await request(app.getHttpServer()).post(`/api/evidence/${photoInit.body.uploadId}/finalize`).set(bearer(user)).send({ sha256: photoHash }).expect(201);
     const recycling = await request(app.getHttpServer()).post("/api/actions/recycling").set(bearer(user)).set("idempotency-key", "recycling-review-flow").send({ evidenceIds: [photoEvidence.body.evidenceId], binCode: "DEMO-BIN-BKK-01:TOKEN-0001", material: "plastic", itemCount: 2, droppedOffAt: new Date().toISOString() }).expect(201);
-    expect(recycling.body.claim.status).toBe("pending_review");
-    const reviewed = await request(app.getHttpServer()).patch(`/api/review/claims/${recycling.body.claim.id}`).set(bearer(reviewer)).send({ decision: "approve", approvedItemCount: 2 }).expect(200);
-    expect(reviewed.body.claim.status).toBe("verified");
+    expect(recycling.body.claim).toMatchObject({ status: "verified", impact_status: "credited" });
+    const declaration = await app.get(DatabaseService).query<{ declared_count: number; approved_count: number }>(
+      "select declared_count,approved_count from recycling_declarations where claim_id=$1",
+      [recycling.body.claim.id],
+    );
+    expect(declaration.rows[0]).toEqual({ declared_count: 2, approved_count: 2 });
+    await request(app.getHttpServer()).patch(`/api/review/claims/${recycling.body.claim.id}`).set(bearer(reviewer)).send({ decision: "approve", approvedItemCount: 2 }).expect(409);
 
     const samples = [{ recordedAt: new Date(Date.now() - 120_000).toISOString(), latitude: "13.7649", longitude: "100.5350", accuracyMeters: "5" }, { recordedAt: new Date(Date.now() - 60_000).toISOString(), latitude: "13.7649", longitude: "100.5387", accuracyMeters: "5" }];
     const trace = Buffer.from(JSON.stringify(samples));

@@ -22,9 +22,9 @@ const claim = (id: string, status: "submitted" | "pending" | "pending_review" | 
             ? "reviewer_rejected"
             : "submitted",
     submitted_at: now,
-    decided_at: null,
+    decided_at: status === "verified" ? now : null,
     awarded_points: status === "verified" ? 25 : 0,
-    impacts: [],
+    impacts: status === "verified" ? [{ kg_co2e: "2.50", impact_type: "avoided" }] : [],
     evidence_ids: [`evidence-${id}`],
   },
 });
@@ -34,7 +34,7 @@ async function mockApi(page: Page, options: {
   dashboardPoints?: number;
   dashboardClaims?: Array<{ id: string; activity: "bus" | "recycling" | "tree"; state: "submitted" | "pending" | "pending_review" | "verified" | "rejected"; submitted_at: string }>;
   dashboardVouchers?: Array<{ id: string; title_th: string; state: "issued" | "redeemed" | "expired" | "cancelled"; issued_at: string; expires_at: string }>;
-  vouchers?: Array<{ voucherId: string; code: string; state: "issued" | "redeemed" | "expired" | "cancelled"; titleThai: string; expiresAt: string }>;
+  vouchers?: Array<{ voucherId: string; code: string; state: "issued" | "redeemed" | "expired" | "cancelled"; titleThai: string; expiresAt: string; redeemedAt?: string | null }>;
   factorDraft?: boolean;
   leaderboardOptedIn?: boolean;
   leaderboardMalformed?: boolean;
@@ -63,23 +63,40 @@ async function mockApi(page: Page, options: {
       recent_claims: options.dashboardClaims ?? [],
       recent_vouchers: options.dashboardVouchers ?? [],
     });
-    if (path === "/claims") return json({ items: [claim("submitted", "submitted"), claim("pending", "pending"), claim("review", "pending_review"), claim("verified", "verified"), claim("rejected", "rejected")] });
-    if (path.startsWith("/review/claims?") || path === "/review/claims") return json({ items: options.reviewClaims ?? [] });
+    if (path === "/claims") return json({ items: [claim("submitted", "submitted"), claim("pending", "pending", "bus"), claim("review", "pending_review"), claim("verified", "verified", "tree"), claim("rejected", "rejected")] });
+    if (path === "/review/claims") return json({ items: options.reviewClaims ?? [] });
     if (path.startsWith("/review/claims/") && method === "PATCH") return json({});
     if (path.startsWith("/evidence/") && path.endsWith("/content")) return options.evidenceOpenFails ? json({ code: "NOT_FOUND" }, 404) : route.fulfill({ status: 200, contentType: "image/jpeg", body: "fixture" });
-    if (path === "/rewards") return json({ items: [{ rewardId: "coffee", titleThai: "กาแฟสาธิต", pointsCost: 20, active: true }] });
+    if (path === "/rewards") return json({ items: [
+      { rewardId: "product", titleThai: "ส่วนลดสินค้า 20 บาท", pointsCost: 20, active: true },
+      { rewardId: "drink", titleThai: "ส่วนลดเครื่องดื่ม 40 บาท", pointsCost: 40, active: true },
+    ] });
     if (path === "/rewards/vouchers" && method === "GET") return json(options.vouchers ?? []);
-    if (path === "/rewards/vouchers" && method === "POST") return json({ voucher: { voucherId: "voucher-1", code: "DEMO-0001", state: "issued", titleThai: "กาแฟสาธิต", expiresAt: "2026-08-19T00:00:00.000Z" } });
+    if (path === "/rewards/vouchers" && method === "POST") return json({ voucher: { voucherId: "voucher-1", code: "DEMO-0001", state: "issued", titleThai: "ส่วนลดสินค้า 20 บาท", expiresAt: "2026-08-19T00:00:00.000Z" } });
     if (path === "/leaderboard/weekly") {
-      if (leaderboardConsentUpdated && options.leaderboardRefreshFailsAfterConsent) {
-        return json({ code: "INTERNAL_ERROR" }, 503);
-      }
+      if (leaderboardConsentUpdated && options.leaderboardRefreshFailsAfterConsent) return json({ code: "INTERNAL_ERROR" }, 503);
       return json({
-      data_scope: options.leaderboardMalformed ? "unknown" : "demo",
-      is_mock: true,
-      demo_only: true,
-      viewer: { opted_in: leaderboardOptedIn, pseudonym_th: leaderboardOptedIn ? "เมฆสีเขียว" : null },
-      entries: leaderboardOptedIn ? [{ rank: 1, pseudonym_th: "เมฆสีเขียว", weekly_points: 40 }] : [],
+        week_starts_at: "2026-08-10T00:00:00.000Z",
+        data_scope: options.leaderboardMalformed ? "unknown" : "demo",
+        is_mock: true,
+        demo_only: true,
+        viewer: { opted_in: leaderboardOptedIn, pseudonym_th: leaderboardOptedIn ? "เมฆสีเขียว" : null },
+        entries: [
+          { rank: 1, pseudonym_th: "ใบไม้ยามเช้า", weekly_points: 75 },
+          { rank: 2, pseudonym_th: "สายลมเจ้าพระยา", weekly_points: 63 },
+          { rank: 3, pseudonym_th: "สวนเล็กกลางเมือง", weekly_points: 48 },
+          ...(leaderboardOptedIn ? [{ rank: 4, pseudonym_th: "เมฆสีเขียว", weekly_points: 40 }] : []),
+          { rank: leaderboardOptedIn ? 5 : 4, pseudonym_th: "รถเมล์สีเขียว", weekly_points: 39 },
+          { rank: leaderboardOptedIn ? 6 : 5, pseudonym_th: "เมล็ดพันธุ์วันใหม่", weekly_points: 30 },
+          { rank: leaderboardOptedIn ? 7 : 6, pseudonym_th: "เพื่อนโลกหมายเลขเจ็ด", weekly_points: 24 },
+          { rank: leaderboardOptedIn ? 8 : 7, pseudonym_th: "คลองใสใจดี", weekly_points: 18 },
+          { rank: leaderboardOptedIn ? 9 : 8, pseudonym_th: "ต้นกล้าริมทาง", weekly_points: 12 },
+        ],
+        community_totals: {
+          estimated_avoided_co2e: "100",
+          projected_sequestration_co2e: "20",
+          verified_weekly_points: 309,
+        },
       });
     }
     if (path === "/leaderboard/consent") {
@@ -109,164 +126,184 @@ async function mockApi(page: Page, options: {
       },
     });
     if (path === "/admin/factors/factor-1/approve") return json({});
+    if (path === "/account" && method === "DELETE") return route.fulfill({ status: 204 });
     return json({});
   });
 }
 
 async function login(page: Page, role: "ผู้ใช้งาน" | "ผู้ตรวจสอบ" | "ร้านค้า" | "ผู้ดูแล") {
   await page.goto("/");
+  await page.getByRole("button", { name: "เริ่มใช้งาน" }).click();
+  if (role === "ผู้ใช้งาน") return;
+  await page.getByRole("button", { name: "ฉัน", exact: true }).click();
+  await page.getByText("สลับบทบาทสาธิต", { exact: true }).click();
   await page.getByRole("button", { name: role, exact: true }).click();
 }
 
-test("Thai login surfaces expose only each role's allowed navigation", async ({ page }) => {
-  await mockApi(page);
-  const cases = [
-    ["ผู้ใช้งาน", "ภาพรวมที่ตรวจสอบย้อนกลับได้", ["ภาพรวม", "บันทึก", "คำขอ", "รางวัล", "ชุมชน"]],
-    ["ผู้ตรวจสอบ", "คิวตรวจหลักฐาน", ["คิวตรวจ"]],
-    ["ร้านค้า", "ใช้หรือยกเลิกบัตรรางวัล", ["ร้านค้า"]],
-    ["ผู้ดูแล", "ปัจจัยคำนวณแบบปิดเมื่อไม่พร้อม", ["ปัจจัย", "คิวตรวจ"]],
-  ] as const;
-
-  for (const [role, heading, links] of cases) {
-    await login(page, role);
-    await expect(page.getByRole("heading", { name: heading })).toBeVisible();
-    await expect(page.getByRole("navigation").getByRole("button")).toHaveText(links);
-    await expect(page.getByText("ภาษาไทยเท่านั้น")).toBeVisible();
-    await expect(page.locator('select[name="language"], [aria-label*="language" i]')).toHaveCount(0);
-    await page.getByRole("button", { name: "ออกจากระบบ" }).click();
-  }
-});
-
-test("ผู้ตรวจสอบเห็นข้อผิดพลาดภาษาไทยเมื่อเปิดหลักฐานจำลองไม่สำเร็จ", async ({ page }) => {
-  await mockApi(page, { reviewClaims: [claim("open-error", "pending", "tree")], evidenceOpenFails: true });
-  await login(page, "ผู้ตรวจสอบ");
-  await page.getByRole("button", { name: /เปิดหลักฐาน/ }).click();
-  await expect(page.getByRole("alert")).toHaveText("เปิดหลักฐานไม่ได้");
-});
-
-test("user dashboard separates impact categories and retains required disclosures", async ({ page }) => {
-  await mockApi(page);
-  await login(page, "ผู้ใช้งาน");
-  await expect(page.getByText("CO₂e ที่หลีกเลี่ยงโดยประมาณ")).toBeVisible();
-  await expect(page.getByText("การกักเก็บหนึ่งปีที่คาดการณ์ไว้")).toBeVisible();
-  await expect(page.getByText("ไม่ใช่คาร์บอนเครดิต การชดเชย หรือการรับรองโดย อบก.")).toBeVisible();
-});
-
-test("0-point dashboard explains all three earn paths and locks an unaffordable reward", async ({ page }) => {
+test("consumer-first entry and role workspaces expose only their allowed navigation", async ({ page }) => {
   await mockApi(page, { dashboardPoints: 0 });
   await login(page, "ผู้ใช้งาน");
-
-  const journey = page.getByRole("region", { name: "จาก 0 คะแนนสู่รางวัล" });
-  await expect(journey).toBeVisible();
-  await expect(journey.getByLabel("เป้าหมายรางวัลแรก 20 คะแนน").getByText("0 / 20")).toBeVisible();
-  await expect(journey.getByText("ยังขาด 20 คะแนน")).toBeVisible();
-  await expect(journey.getByRole("heading", { name: "เดินทางด้วยรถโดยสาร" })).toBeVisible();
-  await expect(journey.getByRole("heading", { name: "นำขวด PET ไปส่ง" })).toBeVisible();
-  await expect(journey.getByRole("heading", { name: "ปลูกต้นไม้" })).toBeVisible();
-  await expect(journey.getByText("ตัวอย่างเดโม: 46 ขวดที่อนุมัติ = 20 คะแนน")).toBeVisible();
-  await expect(journey.getByText("ตัวอย่างเดโม: 1 ต้นที่ผ่าน = 23 คะแนน")).toBeVisible();
-  await expect(journey.getByText("เส้นทางเดโมระยะสั้นอาจผ่านการตรวจแต่ได้ 0 คะแนน")).toBeVisible();
-
-  await journey.getByRole("button", { name: "ดูรางวัลและคะแนนที่ต้องใช้" }).click();
-  await expect(page.getByLabel("คะแนนพร้อมใช้").getByText("0", { exact: true })).toBeVisible();
-  await expect(page.getByText("ขาดอีก 20 คะแนน")).toBeVisible();
-  await expect(page.getByRole("button", { name: "แลกและออกบัตร" })).toBeDisabled();
+  await expect(page.getByRole("heading", { name: "เริ่มกิจกรรมแรกของคุณ" })).toBeVisible();
+  await expect(page.getByRole("navigation").getByRole("button")).toHaveText(["หน้าแรก", "ทำกิจกรรม", "กระเป๋า", "ฉัน"]);
+  await page.getByRole("button", { name: "ฉัน", exact: true }).click();
+  await page.getByText("สลับบทบาทสาธิต", { exact: true }).click();
+  await page.getByRole("button", { name: "ผู้ตรวจสอบ", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "คิวตรวจหลักฐาน" })).toBeVisible();
+  await expect(page.getByRole("navigation").getByRole("button")).toHaveText(["คิวตรวจ"]);
+  await page.getByRole("button", { name: "กลับไปแอปผู้ใช้" }).click();
+  await expect(page.getByRole("navigation").getByRole("button")).toHaveText(["หน้าแรก", "ทำกิจกรรม", "กระเป๋า", "ฉัน"]);
 });
 
-test("23 points issue a 20-point voucher and update the visible balance to 3", async ({ page }) => {
+test("header language control switches Thai, English, and Korean immediately and persists", async ({ page }) => {
+  await mockApi(page, { dashboardPoints: 0 });
+  await page.goto("/");
+  await expect(page.getByLabel("Net Zero")).toHaveText("Net Zero");
+  const language = page.getByRole("combobox", { name: "ภาษา" });
+  await language.selectOption("en");
+  await expect(page.getByLabel("Net Zero")).toHaveText("Net Zero");
+  await expect(page.getByRole("heading", { name: "Cut carbon. Earn points." })).toBeVisible();
+  await page.getByRole("button", { name: "Get started" }).click();
+  await expect(page.getByRole("navigation").getByRole("button")).toHaveText(["Home", "Activities", "Wallet", "Me"]);
+  await page.getByRole("combobox", { name: "Language" }).selectOption("ko");
+  await expect(page.getByLabel("Net Zero")).toHaveText("Net Zero");
+  await expect(page.getByRole("heading", { name: "첫 활동을 시작하세요" })).toBeVisible();
+  await expect(page.getByRole("navigation").getByRole("button")).toHaveText(["홈", "활동", "지갑", "내 정보"]);
+  await page.reload();
+  await expect(page.getByLabel("Net Zero")).toHaveText("Net Zero");
+  await expect(page.getByRole("heading", { name: "탄소를 줄이고 포인트를 받으세요" })).toBeVisible();
+});
+
+test("consumer home hides internal requirements while keeping the three earn paths visible", async ({ page }) => {
+  await mockApi(page, { dashboardPoints: 0 });
+  await login(page, "ผู้ใช้งาน");
+  await expect(page.getByLabel("คะแนนของคุณ").getByText("0", { exact: true })).toBeVisible();
+  await expect(page.getByText("อีก 20 คะแนน รับส่วนลด 20 บาท")).toBeVisible();
+  for (const label of ["ขึ้นรถโดยสาร", "ส่งรีไซเคิล", "ปลูกต้นไม้"]) await expect(page.getByRole("button", { name: new RegExp(label) }).first()).toBeVisible();
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  const body = page.locator("body");
+  for (const term of ["mock_demo", "fixture_id", "factor", "idempotency", "atomic", "RBAC", "GPS สังเคราะห์", "วิธีวิทยา"]) await expect(body).not.toContainText(term);
+});
+
+test("0-point wallet locks rewards contextually without a presentation explainer", async ({ page }, testInfo) => {
+  if (testInfo.project.name === "chromium-desktop") await page.setViewportSize({ width: 1024, height: 900 });
+  await mockApi(page, { dashboardPoints: 0 });
+  await login(page, "ผู้ใช้งาน");
+  await page.getByRole("button", { name: "กระเป๋า", exact: true }).click();
+  await expect(page.getByLabel("คะแนนพร้อมใช้").getByText("0", { exact: true })).toBeVisible();
+  await expect(page.getByText("อีก 20 คะแนน", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "แลกรางวัล", exact: true })).toHaveCount(0);
+  await expect(page.getByText("คะแนนจะถูกใช้เมื่อออกบัตรสำเร็จ")).toBeVisible();
+  await expect(page.getByText("คะแนนเชื่อมกับบัตรอย่างไร")).toHaveCount(0);
+  await page.getByRole("combobox", { name: "ภาษา" }).selectOption("ko");
+  const firstReward = page.locator(".reward-card").first();
+  await expect(firstReward.getByRole("heading", { name: "상품 20바트 할인" })).toBeVisible();
+  const rewardLayout = await firstReward.evaluate((card) => {
+    const copy = card.children.item(1) as HTMLElement | null;
+    const title = card.querySelector("h3");
+    return {
+      columns: getComputedStyle(card).gridTemplateColumns,
+      copyWidth: copy?.getBoundingClientRect().width ?? 0,
+      titleHeight: title?.getBoundingClientRect().height ?? 0,
+    };
+  });
+  expect(rewardLayout.columns).not.toContain("0px");
+  expect(rewardLayout.copyWidth).toBeGreaterThanOrEqual(120);
+  expect(rewardLayout.titleHeight).toBeLessThanOrEqual(48);
+});
+
+test("23 points issue a 20-point voucher, leave 3 points, and render a code-derived QR", async ({ page }) => {
   await mockApi(page, { dashboardPoints: 23 });
   await login(page, "ผู้ใช้งาน");
-  await page.getByRole("button", { name: "รางวัล" }).click();
-
-  const issue = page.getByRole("button", { name: "แลกและออกบัตร" });
-  await expect(issue).toBeEnabled();
-  await issue.click();
+  await page.getByRole("button", { name: "กระเป๋า", exact: true }).click();
+  await page.getByRole("button", { name: "แลกรางวัล", exact: true }).first().click();
   await expect(page.getByLabel("คะแนนพร้อมใช้").getByText("3", { exact: true })).toBeVisible();
-  await expect(page.getByText("ออกบัตรแล้ว คะแนนคงเหลืออัปเดตแล้ว")).toBeVisible();
-  await expect(page.getByText("รหัส DEMO-0001")).toBeVisible();
+  await expect(page.getByText("ออกบัตรแล้ว")).toBeVisible();
+  await page.getByRole("button", { name: /ส่วนลดสินค้า 20 บาท\s+พร้อมใช้/ }).click();
+  await expect(page.getByRole("heading", { name: "บัตรของฉัน", exact: true })).toBeVisible();
+  await expect(page.getByText("DEMO 0001")).toBeVisible();
+  await expect(page.getByRole("img", { name: "คิวอาร์โค้ดบัตร DEMO-0001" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "แสดงให้ร้านค้า" })).toBeVisible();
 });
 
-test("a persisted redeemed voucher renders its terminal used state", async ({ page }) => {
+test("a persisted redeemed voucher renders its terminal used state without a QR action", async ({ page }) => {
   await mockApi(page, {
     dashboardPoints: 3,
-    vouchers: [{ voucherId: "voucher-1", code: "DEMO-0001", state: "redeemed", titleThai: "กาแฟสาธิต", expiresAt: "2026-08-19T00:00:00.000Z" }],
+    vouchers: [{ voucherId: "voucher-1", code: "DEMO-0001", state: "redeemed", titleThai: "ส่วนลดสินค้า 20 บาท", expiresAt: "2026-08-19T00:00:00.000Z", redeemedAt: now }],
   });
   await login(page, "ผู้ใช้งาน");
-  await page.getByRole("button", { name: "รางวัล" }).click();
-  const voucherList = page.getByRole("heading", { name: "บัตรของฉัน" }).locator("..");
-  await expect(voucherList.getByText("กาแฟสาธิต")).toBeVisible();
-  await expect(voucherList.getByText("ใช้แล้ว", { exact: true })).toBeVisible();
-  await expect(voucherList.getByText("รหัส DEMO-0001")).toBeVisible();
+  await page.getByRole("button", { name: "กระเป๋า", exact: true }).click();
+  await page.getByRole("button", { name: /ส่วนลดสินค้า 20 บาท\s+ใช้แล้ว/ }).click();
+  await expect(page.getByText("ใช้แล้ว", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("DEMO 0001")).toBeVisible();
+  await expect(page.getByRole("button", { name: "แสดงให้ร้านค้า" })).toHaveCount(0);
+  await expect(page.getByRole("img", { name: /คิวอาร์โค้ด/ })).toHaveCount(0);
 });
 
-test("user claim, reward, and opt-in leaderboard surfaces use Thai product copy", async ({ page }) => {
+test("activity history maps claim states and reasons to consumer Thai copy", async ({ page }) => {
   await mockApi(page);
   await login(page, "ผู้ใช้งาน");
-  await page.getByRole("button", { name: "คำขอ" }).click();
-  for (const label of ["รับคำขอแล้ว", "รอข้อมูลหรือการตรวจ", "รอผู้ตรวจสอบ", "ผ่าน", "ไม่ผ่าน"]) await expect(page.getByText(label, { exact: true })).toBeVisible();
-  await expect(page.getByText("รีไซเคิล", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText(/ผลกระทบ: บันทึกผลกระทบแล้ว/).first()).toBeVisible();
-  await expect(page.getByText("ข้อมูลสำหรับตรวจรถโดยสารยังไม่ครบ")).toBeVisible();
-  await expect(page.getByText("bus_metric_unavailable")).toHaveCount(0);
-
-  await page.getByRole("button", { name: "รางวัล" }).click();
-  await page.getByRole("button", { name: "แลกและออกบัตร" }).click();
-  await expect(page.getByText("รหัส DEMO-0001")).toBeVisible();
-  await expect(page.getByText("ออกบัตรแล้ว", { exact: true })).toBeVisible();
-
-  await page.getByRole("button", { name: "ชุมชน" }).click();
-  await expect(page.getByText("ขอบเขตข้อมูล: สาธิต")).toBeVisible();
-  await expect(page.getByText("สมัครใจและใช้เฉพาะคะแนนจากกิจกรรมที่ผ่านการตรวจ")).toBeVisible();
-  await page.getByRole("checkbox", { name: "เข้าร่วมด้วยนามแฝง" }).check();
+  await page.getByRole("button", { name: "ทำกิจกรรม", exact: true }).click();
+  await page.getByRole("button", { name: "ดูประวัติกิจกรรม" }).click();
+  for (const label of ["กำลังตรวจสอบ", "ผ่านการตรวจสอบ", "ต้องตรวจสอบอีกครั้ง"]) await expect(page.getByText(label, { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("ข้อมูลการเดินทางยังไม่ครบ กรุณารอตรวจสอบ")).toBeVisible();
+  await expect(page.getByText("+25 คะแนน")).toBeVisible();
+  await expect(page.locator("body")).not.toContainText("bus_metric_unavailable");
+  await expect(page.locator("body")).not.toContainText("FIXTURE-BKK");
 });
 
-test("leaderboard hydrates persisted consent and withdraws in one action", async ({ page }) => {
+test("weekly leaderboard keeps four-job navigation and confirms opt-out", async ({ page }) => {
   await mockApi(page, { leaderboardOptedIn: true });
   await login(page, "ผู้ใช้งาน");
-  await page.getByRole("button", { name: "ชุมชน" }).click();
-  const consent = page.getByRole("checkbox", { name: "เข้าร่วมด้วยนามแฝง" });
-  await expect(consent).toBeChecked();
+  await page.getByRole("button", { name: "ฉัน", exact: true }).click();
+  await page.getByRole("button", { name: /อันดับประจำสัปดาห์/ }).click();
+  await expect(page.getByRole("heading", { name: "อันดับประจำสัปดาห์" })).toBeVisible();
+  await expect(page.getByRole("navigation").getByRole("button")).toHaveText(["หน้าแรก", "ทำกิจกรรม", "กระเป๋า", "ฉัน"]);
+  await expect(page.locator(".full-list li")).toHaveCount(9);
   await expect(page.getByText("เมฆสีเขียว")).toBeVisible();
-  await consent.uncheck();
-  await expect(consent).not.toBeChecked();
+  await page.getByRole("button", { name: "ออกจากอันดับสัปดาห์นี้" }).click();
+  const confirmation = page.getByRole("group", { name: "ออกจากอันดับประจำสัปดาห์?" });
+  await expect(confirmation).toBeVisible();
+  await confirmation.getByRole("button", { name: "ออกจากอันดับ", exact: true }).click();
+  await expect(page.getByText("คุณไม่ได้เข้าร่วมสัปดาห์นี้")).toBeVisible();
   await expect(page.getByText("เมฆสีเขียว")).toHaveCount(0);
+  await expect(page.getByText("ใบไม้ยามเช้า").first()).toBeVisible();
 });
 
 test("leaderboard keeps committed opt-out when the refresh fails", async ({ page }) => {
   await mockApi(page, { leaderboardOptedIn: true, leaderboardRefreshFailsAfterConsent: true });
   await login(page, "ผู้ใช้งาน");
-  await page.getByRole("button", { name: "ชุมชน" }).click();
-  const consent = page.getByRole("checkbox", { name: "เข้าร่วมด้วยนามแฝง" });
-  await expect(consent).toBeChecked();
-  await consent.uncheck();
-  await expect(consent).not.toBeChecked();
+  await page.getByRole("button", { name: "ฉัน", exact: true }).click();
+  await page.getByRole("button", { name: /อันดับประจำสัปดาห์/ }).click();
+  await page.getByRole("button", { name: "ออกจากอันดับสัปดาห์นี้" }).click();
+  await page.getByRole("group", { name: "ออกจากอันดับประจำสัปดาห์?" }).getByRole("button", { name: "ออกจากอันดับ", exact: true }).click();
+  await expect(page.getByText("คุณไม่ได้เข้าร่วมสัปดาห์นี้")).toBeVisible();
   await expect(page.getByText("เมฆสีเขียว")).toHaveCount(0);
   await expect(page.getByText("บันทึกความยินยอมแล้ว แต่โหลดอันดับล่าสุดไม่สำเร็จ")).toBeVisible();
 });
 
-test("leaderboard rejects an unknown data scope instead of masking it as demo", async ({ page }) => {
+test("leaderboard rejects an unknown community data scope instead of masking it", async ({ page }) => {
   await mockApi(page, { leaderboardMalformed: true });
   await login(page, "ผู้ใช้งาน");
-  await page.getByRole("button", { name: "ชุมชน" }).click();
-  await expect(page.getByText("ข้อมูลอันดับจากระบบไม่ถูกต้อง")).toBeVisible();
-  await expect(page.getByText("ขอบเขตข้อมูล: สาธิต")).toHaveCount(0);
+  await page.getByRole("button", { name: "ฉัน", exact: true }).click();
+  await page.getByRole("button", { name: /อันดับประจำสัปดาห์/ }).click();
+  await expect(page.getByRole("alert")).toHaveText("ข้อมูลอันดับจากระบบไม่ถูกต้อง");
 });
 
-test("reviewer can decide tree and recycling but cannot bypass the bus oracle", async ({ page }) => {
+test("reviewer sees Thai evidence failure and cannot bypass the bus oracle", async ({ page }) => {
   const decisions: unknown[] = [];
-  await mockApi(page, { reviewClaims: [claim("approve", "pending", "tree"), claim("reduce", "pending", "recycling"), claim("reject", "pending_review", "bus")] });
+  await mockApi(page, { reviewClaims: [claim("open-error", "pending", "tree"), claim("reduce", "pending", "recycling"), claim("bus", "pending_review", "bus")], evidenceOpenFails: true });
   await page.route("**/api/review/claims/*", async (route: Route) => {
+    if (route.request().method() !== "PATCH") return route.fallback();
     decisions.push(route.request().postDataJSON());
     await route.fulfill({ contentType: "application/json", body: "{}" });
   });
   await login(page, "ผู้ตรวจสอบ");
+  await page.getByRole("button", { name: /เปิดหลักฐาน/ }).first().click();
+  await expect(page.getByRole("alert")).toHaveText("เปิดหลักฐานไม่ได้");
   await page.getByRole("button", { name: "อนุมัติ" }).first().click();
-  await expect.poll(() => decisions.length).toBe(1);
   await page.getByRole("spinbutton", { name: "จำนวนที่อนุมัติ" }).fill("2");
   await page.getByRole("button", { name: "ลดจำนวน" }).click();
-  await expect.poll(() => decisions.length).toBe(2);
   await expect(page.getByText("รายการรถโดยสารต้องผ่านกฎตรวจอัตโนมัติครบทุกข้อ ผู้ตรวจสอบไม่สามารถเปลี่ยนรายการนี้เป็นสถานะผ่านได้")).toBeVisible();
-  await expect(page.getByRole("button", { name: "ปฏิเสธ" })).toHaveCount(0);
   await expect.poll(() => decisions).toEqual([{ decision: "approve" }, { decision: "reduce", approvedItemCount: 2 }]);
 });
 
@@ -278,7 +315,6 @@ test("merchant prevents a voucher from being scanned twice", async ({ page }) =>
   await page.getByRole("button", { name: "ตรวจและใช้สิทธิ์" }).click();
   await expect(page.getByRole("status")).toHaveText("ใช้สิทธิ์สำเร็จและปิดรหัสบัตรแล้ว");
   await expect(page.getByLabel("หลักฐานการใช้บัตร").getByText("ใช้แล้ว", { exact: true })).toBeVisible();
-  await expect(page.getByLabel("หลักฐานการใช้บัตร").getByText(/รหัส DEMO-0001/)).toBeVisible();
   await code.fill("DEMO-0001");
   await page.getByRole("button", { name: "ตรวจและใช้สิทธิ์" }).click();
   await expect(page.getByRole("alert")).toHaveText("บัตรรางวัลนี้ถูกใช้แล้ว");
@@ -287,22 +323,15 @@ test("merchant prevents a voucher from being scanned twice", async ({ page }) =>
 test("client maps API failures to Thai without exposing server text", async ({ page }) => {
   await page.route("**/api/**", async (route) => {
     const path = new URL(route.request().url()).pathname.replace("/api", "");
-    if (path === "/auth/demo-login") {
-      await route.fulfill({ contentType: "application/json", body: JSON.stringify({ accessToken: "token" }) });
-      return;
-    }
-    await route.fulfill({
-      status: 500,
-      contentType: "application/json",
-      body: JSON.stringify({ code: "INTERNAL_ERROR", message: "Internal database failure in English" }),
-    });
+    if (path === "/auth/demo-login") return route.fulfill({ contentType: "application/json", body: JSON.stringify({ accessToken: "token" }) });
+    await route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ code: "INTERNAL_ERROR", message: "Internal database failure in English" }) });
   });
   await login(page, "ผู้ใช้งาน");
   await expect(page.getByRole("alert")).toHaveText("ระบบขัดข้องชั่วคราว กรุณาลองใหม่");
   await expect(page.getByText("Internal database failure in English")).toHaveCount(0);
 });
 
-test("admin requires review confirmation and shows separated mock and production readiness", async ({ page }) => {
+test("admin requires review confirmation and shows separated readiness", async ({ page }) => {
   const approvals: string[] = [];
   await mockApi(page, { factorDraft: true });
   await page.route("**/api/admin/factors/factor-1/approve", async (route) => {
@@ -313,13 +342,6 @@ test("admin requires review confirmation and shows separated mock and production
   await expect(page.getByText("ปัจจัยเดโมจำลองยังไม่พร้อม")).toBeVisible();
   await expect(page.getByText("ปัจจัยสำหรับใช้งานจริง: ครบเฉพาะปัจจัย")).toBeVisible();
   await expect(page.getByText(/ความพร้อมใช้งานจริง: ไม่พร้อม/)).toBeVisible();
-  const readiness = page.getByRole("heading", { name: "สถานะความพร้อมของเดโมจำลอง" }).locator("..");
-  await expect(readiness.getByText("รถโดยสาร", { exact: true })).toBeVisible();
-  await expect(readiness.getByText("รีไซเคิล", { exact: true })).toBeVisible();
-  await expect(readiness.getByText("ปลูกต้นไม้", { exact: true })).toBeVisible();
-  await expect(readiness.locator("pre")).toHaveCount(0);
-  await expect(page.getByText("ฉบับร่างสำหรับใช้งานจริง", { exact: true })).toBeVisible();
-  await expect(page.getByText("อนุมัติเดโมจำลอง", { exact: false })).toHaveCount(0);
   await page.getByRole("button", { name: "ส่งตรวจทานเดโมจำลอง" }).click();
   await expect(page.getByRole("alert")).toHaveText("ต้องยืนยันการตรวจทานครบทุกหัวข้อก่อนส่งตรวจทานเดโมจำลอง");
   await page.getByRole("checkbox", { name: /ตรวจทานค่า หน่วย/ }).check();

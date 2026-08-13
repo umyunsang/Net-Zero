@@ -261,17 +261,18 @@ describeIntegration("demo and real-data separation", () => {
         demoAiResult: "pass",
       })
       .expect(201);
-    expect(tree.body.claim.awarded_points).toBe(23);
+    expect(tree.body.claim.awarded_points).toBe(15);
     await request(app.getHttpServer())
       .post(`/api/review/claims/${tree.body.claim.id}/corrections`)
       .set(bearer(admin))
       .send({ correctedTotalKgCo2e: "8.000000", reason: "ทดสอบรายการชดเชยในอันดับ" })
       .expect(201);
     const leaderboard = await request(app.getHttpServer()).get("/api/leaderboard/weekly").set(bearer(user)).expect(200);
-    expect(leaderboard.body.entries).toEqual([
-      expect.objectContaining({ pseudonym_th: "ผู้ใช้-ใบไม้-1001", weekly_points: 20 }),
-    ]);
-    expect(leaderboard.body.community_totals.verified_weekly_points).toBe(20);
+    expect(leaderboard.body.entries).toEqual(expect.arrayContaining([
+      expect.objectContaining({ pseudonym_th: "ผู้ใช้-ใบไม้-1001", weekly_points: 15 }),
+      expect.objectContaining({ pseudonym_th: "ใบไม้ยามเช้า", weekly_points: 75 }),
+    ]));
+    expect(leaderboard.body.community_totals.verified_weekly_points).toBe(15);
 
     const week = await database.query<{ week_start: string }>(
       "select date_trunc('week',now() at time zone 'Asia/Bangkok')::date::text week_start",
@@ -293,8 +294,8 @@ describeIntegration("demo and real-data separation", () => {
       [week.rows[0]!.week_start],
     );
     expect(projection.rows[0]).toEqual({
-      leaderboard_points: 20,
-      community_points: 20,
+      leaderboard_points: 15,
+      community_points: 15,
       projected: "8.000000",
       avoided: "0.000000",
     });

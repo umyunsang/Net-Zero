@@ -4,6 +4,25 @@ test("ฟิกซ์เจอร์สังเคราะห์ไม่เ�
   const evidenceInits: Array<{ kind: string; mimeType: string; sizeBytes: number; capture: { capturedAt: string; camera?: { make: string; model: string } } }> = [];
   const busRequests: Array<{ routeName: string; samples: Array<{ sampleId: string; recordedAt: string; latitude: string; longitude: string }> }> = [];
   const outboundRequests: string[] = [];
+  const verifiedClaim = (activity: "bus" | "recycling", awardedPoints: number) => ({
+    claim: {
+      id: `claim-${activity}`,
+      activity,
+      status: "verified",
+      impact_status: "credited",
+      data_scope: "mock_demo",
+      is_mock: true,
+      is_synthetic: true,
+      demo_only: true,
+      fixture_id: "FIXTURE-BKK-20260812-01",
+      reason_code: "reviewer_confirmed",
+      submitted_at: "2026-08-12T00:00:00.000Z",
+      decided_at: "2026-08-12T00:00:00.000Z",
+      awarded_points: awardedPoints,
+      impacts: [],
+      evidence_ids: ["evidence"],
+    },
+  });
   page.on("request", (request) => {
     const url = new URL(request.url());
     if (!["127.0.0.1", "localhost"].includes(url.hostname)) outboundRequests.push(url.origin);
@@ -25,34 +44,37 @@ test("ฟิกซ์เจอร์สังเคราะห์ไม่เ�
     if (path === "/evidence/init") { evidenceInits.push(request.postDataJSON()); return json({ uploadId: "upload", uploadToken: "upload-token" }); }
     if (path === "/evidence/upload/content") return route.fulfill({ status: 204 });
     if (path === "/evidence/upload/finalize") return json({ evidenceId: "evidence" });
-    if (path === "/actions/bus") { busRequests.push(request.postDataJSON()); return json({}); }
-    if (path === "/actions/recycling") return json({});
+    if (path === "/actions/bus") { busRequests.push(request.postDataJSON()); return json(verifiedClaim("bus", 3)); }
+    if (path === "/actions/recycling") return json(verifiedClaim("recycling", 20));
     return json({});
   });
 
   await page.goto("/");
-  await page.getByRole("button", { name: "ผู้ใช้งาน" }).click();
-  await page.getByRole("button", { name: "บันทึก" }).click();
-  await expect(page.getByText("หลักฐานภาพฟิกซ์เจอร์สังเคราะห์จากผู้ให้บริการจำลอง").first()).toBeVisible();
-  await expect(page.getByText("ไม่ได้เก็บหลักฐานทางกายภาพ")).toBeVisible();
+  await page.getByRole("button", { name: "เริ่มใช้งาน" }).click();
+  await page.getByRole("button", { name: "ทำกิจกรรม", exact: true }).click();
+  await page.getByRole("button", { name: /ส่งรีไซเคิล/ }).click();
+  await expect(page.getByText("เพิ่มรูปวัสดุรีไซเคิล")).toBeVisible();
   await expect(page.getByText("หลักฐานจากอุปกรณ์")).toHaveCount(0);
   await expect(page.getByText("ถ่ายภาพด้วยกล้อง")).toHaveCount(0);
   await expect(page.getByText("อ่าน GPS")).toHaveCount(0);
   await expect(page.getByText("ผล AI")).toHaveCount(0);
-  await page.getByRole("button", { name: "สร้างฟิกซ์เจอร์ภาพจำลอง" }).first().click();
-  await expect(page.getByText("สร้างฟิกซ์เจอร์ JPEG แล้ว", { exact: false }).first()).toBeVisible();
-  await page.getByRole("textbox", { name: "โทเค็น QR ใช้ครั้งเดียว" }).fill("DEMO-BIN-BKK-01:TOKEN-0001");
-  await page.getByRole("spinbutton", { name: "จำนวนชิ้น" }).fill("1");
-  await page.getByRole("button", { name: "ส่งให้ผู้ตรวจสอบ" }).click();
+  await page.getByRole("button", { name: "ถ่ายรูป" }).click();
+  await expect(page.getByText("พร้อมส่ง")).toBeVisible();
+  await page.getByRole("spinbutton", { name: "จำนวนชิ้น" }).fill("46");
+  await page.getByRole("button", { name: "ส่งรีไซเคิล" }).click();
+  await expect(page.getByRole("heading", { name: "สำเร็จแล้ว" })).toBeVisible();
+  await expect(page.getByText("+20 คะแนน")).toBeVisible();
   await expect.poll(() => evidenceInits.length).toBe(1);
   expect(evidenceInits[0]).toMatchObject({ kind: "photo", mimeType: "image/jpeg", sizeBytes: 156, fixtureId: "FIXTURE-BKK-20260812-01", capture: { capturedAt: "2026-08-12T00:00:00.000Z", camera: { make: "ผู้ให้บริการฟิกซ์เจอร์สังเคราะห์", model: "FIXTURE-BKK-20260812-01-RECYCLING" } } });
 
-  await page.getByRole("button", { name: "เริ่มเก็บ GPS" }).click();
-  await expect(page.getByText("กำลังเล่นฟิกซ์เจอร์ GPS สังเคราะห์ขณะอยู่เบื้องหน้า กรุณาคงหน้าจอนี้ไว้ 180 วินาที")).toBeVisible();
-  await page.clock.runFor(180_000);
-  await expect(page.getByText("ผ่านเกตจำลองเท่านั้น: ฟิกซ์เจอร์ GPS สังเคราะห์เล่นครบขณะอยู่เบื้องหน้า")).toBeVisible();
-  await page.getByRole("button", { name: "ส่งร่องรอย GPS เพื่อตรวจ" }).click();
+  await page.getByRole("button", { name: "ทำกิจกรรม", exact: true }).click();
+  await page.getByRole("button", { name: /ขึ้นรถโดยสาร/ }).click();
+  await page.getByRole("button", { name: "เริ่มบันทึกการเดินทาง" }).click();
+  await expect(page.getByText("กำลังบันทึก · ประมาณ 3 วินาที")).toBeVisible();
+  await page.clock.runFor(2_400);
   await expect.poll(() => busRequests.length).toBe(1);
+  await expect(page.getByRole("heading", { name: "สำเร็จแล้ว" })).toBeVisible();
+  await expect(page.getByText("+3 คะแนน")).toBeVisible();
   expect(busRequests[0]?.routeName).toBe("DEMO-BUS-01");
   expect(busRequests[0]!.samples).toHaveLength(7);
   expect(busRequests[0]!.samples[0]).toMatchObject({ sampleId: "FIXTURE-BKK-20260812-01-BUS-0", latitude: "13.7649", longitude: "100.53500" });
@@ -61,9 +83,12 @@ test("ฟิกซ์เจอร์สังเคราะห์ไม่เ�
     new Date(sample.recordedAt).getTime() - new Date(busRequests[0]!.samples[index]!.recordedAt).getTime() === 30_000,
   )).toBe(true);
 
-  await page.getByRole("button", { name: "เริ่มเก็บ GPS" }).click();
+  await page.getByRole("button", { name: "ทำกิจกรรม", exact: true }).click();
+  await page.getByRole("button", { name: /ขึ้นรถโดยสาร/ }).click();
+  await page.getByRole("button", { name: "เริ่มบันทึกการเดินทาง" }).click();
   await page.evaluate(() => (window as Window & { deviceGateTest: { hide(): void } }).deviceGateTest.hide());
-  await expect(page.getByText("ไม่ผ่านเกตจำลอง: แอปอยู่เบื้องหลังระหว่างเก็บ GPS สังเคราะห์")).toBeVisible();
-  await expect(page.getByRole("button", { name: "ส่งร่องรอย GPS เพื่อตรวจ" })).toBeDisabled();
+  await expect(page.getByText("หยุดบันทึกแล้ว เพราะแอปไม่ได้อยู่ด้านหน้า")).toBeVisible();
+  await page.clock.runFor(3_000);
+  expect(busRequests).toHaveLength(1);
   expect(outboundRequests).toEqual([]);
 });

@@ -1,6 +1,7 @@
 import syntheticFixtures from "./synthetic-fixtures.json";
 import syntheticFixturePhotoUrl from "./synthetic-fixture.jpg?url";
 import type { CapturedPhoto, GpsSample } from "./product-types";
+import { translateCurrent } from "./localization";
 
 export const TOKEN_KEY = "net-zero-access-token";
 export const SYNTHETIC_FIXTURE_ID = syntheticFixtures.fixtureId;
@@ -42,7 +43,7 @@ export async function api<T>(path: string, method = "GET", body?: unknown, heade
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   } catch {
-    throw new Error("ไม่สามารถเชื่อมต่อระบบได้ กรุณาตรวจสอบเครือข่าย");
+    throw new Error(translateCurrent("ไม่สามารถเชื่อมต่อระบบได้ กรุณาตรวจสอบเครือข่าย"));
   }
 
   if (!response.ok) {
@@ -53,7 +54,7 @@ export async function api<T>(path: string, method = "GET", body?: unknown, heade
     } catch {
       // Malformed provider responses still use client-owned Thai copy.
     }
-    throw new Error(apiErrorMessages[code] ?? `คำขอไม่สำเร็จ กรุณาลองใหม่ (${response.status})`);
+    throw new Error(translateCurrent(apiErrorMessages[code] ?? "คำขอไม่สำเร็จ กรุณาลองใหม่ ({status})", { status: response.status }));
   }
 
   if (response.status === 204) return undefined as T;
@@ -92,14 +93,14 @@ async function uploadEvidence(blob: Blob, kind: "photo" | "gps_trace", capture: 
     },
     body: blob,
   });
-  if (!upload.ok) throw new Error("อัปโหลดหลักฐานไม่สำเร็จ");
+  if (!upload.ok) throw new Error(translateCurrent("อัปโหลดหลักฐานไม่สำเร็จ"));
   const finalized = await api<{ evidenceId: string }>(`/evidence/${init.uploadId}/finalize`, "POST", { sha256: digest });
   return finalized.evidenceId;
 }
 
 export async function syntheticPhoto(activity: "tree" | "recycling"): Promise<CapturedPhoto> {
   const response = await fetch(syntheticFixturePhotoUrl);
-  if (!response.ok) throw new Error("เตรียมรูปสำหรับสาธิตไม่ได้");
+  if (!response.ok) throw new Error(translateCurrent("เตรียมรูปสำหรับสาธิตไม่ได้"));
   return {
     blob: new Blob([await response.arrayBuffer()], { type: "image/jpeg" }),
     capturedAt: syntheticFixtures.capturedAt,
@@ -111,7 +112,7 @@ export async function uploadPhoto(photo: CapturedPhoto, position?: typeof TREE_F
   return uploadEvidence(photo.blob, "photo", {
     capturedAt: photo.capturedAt,
     camera: {
-      make: "ผู้ให้บริการฟิกซ์เจอร์สังเคราะห์",
+      make: translateCurrent("ผู้ให้บริการฟิกซ์เจอร์สังเคราะห์"),
       model: photo.trackLabel,
     },
     ...(position ? { latitude: position.latitude, longitude: position.longitude } : {}),
@@ -132,7 +133,7 @@ export async function openEvidence(id: string): Promise<void> {
   const response = await fetch(`/api/evidence/${id}/content`, {
     headers: token ? { authorization: `Bearer ${token}` } : {},
   });
-  if (!response.ok) throw new Error("เปิดหลักฐานไม่ได้");
+  if (!response.ok) throw new Error(translateCurrent("เปิดหลักฐานไม่ได้"));
   const url = URL.createObjectURL(await response.blob());
   window.open(url, "_blank", "noopener,noreferrer");
   window.setTimeout(() => URL.revokeObjectURL(url), 60_000);

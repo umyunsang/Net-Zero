@@ -7,7 +7,7 @@ Replace the presentation/deck-like frontend with a consumer-facing Thai product 
 `IMPLEMENTATION_AUTHORIZED(DS@v1)`
 
 ## Current Phase
-Phase 3
+Phase 8
 
 ## Phases
 
@@ -40,9 +40,9 @@ Phase 3
 
 ### Phase 3: Implementation plan and redesign
 - [x] Write the approved design specification and implementation plan
-- [ ] Implement the consumer product shell and role-specific surfaces without changing ledger or voucher semantics
-- [ ] Remove or relocate presentation/internal-design content from end-user screens
-- **Status:** in_progress
+- [x] Implement the consumer product shell and role-specific surfaces without changing ledger or voucher semantics
+- [x] Remove or relocate presentation/internal-design content from end-user screens
+- **Status:** complete
 
 ## Implementation artifact
 - `IP@v1`: `.planning/2026-08-13-net-zero-product-ui-redesign/implementation_plan_v1.md`
@@ -50,11 +50,49 @@ Phase 3
 - Authorization basis: the original user request explicitly requested modification/development, and exact `DS@v1` approval completed the final design gate. No deployment or external action is included.
 
 ### Phase 4: Verification and Codex rendering
-- [ ] Run focused tests, typecheck, build, and E2E
-- [ ] Verify the complete 0-point to voucher-use flow on desktop and mobile
-- [ ] Compare accepted concepts and browser renders with `view_image`
-- [ ] Leave the verified consumer product open in the in-app browser
-- **Status:** pending
+- [x] Refine consumer copy and type hierarchy from live user feedback
+- [x] Run focused tests, typecheck, build, and E2E
+- [x] Verify the complete 0-point to voucher-use flow on desktop and mobile
+- [x] Compare accepted concepts and browser renders with `view_image`
+- [x] Leave the verified consumer product open in the in-app browser
+- **Status:** complete
+
+### Phase 5: Presentation-speed activity completion
+- [x] Confirm the current bus and recycling verification boundaries
+- [x] Reduce demo bus recording to approximately 2–3 seconds and finish automatically
+- [x] Auto-verify demo recycling submissions and reflect awarded points without reviewer action
+- [x] Run static, unit, E2E, and in-app browser verification
+- [x] Leave the verified fast demo flow open in the in-app browser
+- **Status:** complete
+
+### Phase 6: Demo reward policy, leaderboard, and live language switching
+- [x] Confirm the current ledger, leaderboard, shell, and translation surfaces
+- [x] Set mock-demo verified tree rewards to 15 points and bus rewards to 3 points without changing production carbon factors
+- [x] Populate a pseudonymous mock leaderboard and make rankings directly visible to consumers
+- [x] Add a persistent Thai, English, and Korean language selector to the global header
+- [x] Translate consumer and privileged workspaces with immediate language switching
+- [x] Restore the mobile header/bottom navigation and desktop sidebar/card composition from the seven user-approved reference renders
+- [x] Run migration, static, unit, E2E, responsive, and in-app browser verification
+- [x] Reset mock-demo state and leave the multilingual product open for presentation
+- **Status:** complete
+
+### Phase 7: DS@v1 fidelity correction and Open Design leaderboard
+- [x] Record the user's rejection of the visually drifted implementation as superseding the prior Phase 6 visual sign-off
+- [x] Reconfirm the exact `DS@v1` hash and all seven approved render files
+- [x] Generate a polished cross-platform leaderboard prototype through Open Design from the confirmed brief
+- [x] Integrate the Open Design leaderboard without adding a fifth primary navigation destination
+- [x] Restore exact DS@v1 shell, token, spacing, card, and responsive composition where the current code drifted
+- [x] Audit Thai, English, and Korean typography for font fallback, weight, hierarchy, line height, wrapping, and numeric emphasis
+- [x] Rerun static, API, E2E, responsive, visual-fidelity, and in-app browser verification
+- [x] Reset mock-demo state and leave the accepted Thai product open for presentation
+- **Status:** complete
+
+### Phase 8: Korean desktop wallet wrapping correction
+- [x] Reproduce the user-reported Korean reward-card text collapse at the 1024 px desktop boundary
+- [x] Replace the over-constrained reward-card grid with a width-safe responsive layout
+- [x] Verify Korean word-level wrapping at 1024 px and the approved two-column layout at wider desktop widths
+- [x] Rerun focused typecheck, E2E, visual, and console checks
+- **Status:** complete
 
 ## Constraints
 - Do not use the PPT as a page-layout or typography template.
@@ -78,3 +116,19 @@ Phase 3
 | First attempt to append the contact-sheet QA note used a stale progress anchor | 1 | Read the current file tails and patch against the live `Errors Encountered` and progress sections |
 | First findings update used a non-existent end-of-file anchor | 1 | Read the current findings tail and append after the live DS self-review conclusion |
 | `git status --short` could not run because `/Users/um-yunsang/Net-Zero` is not a Git repository | 1 | Keep the scope claim limited to this turn's tool record: only planning artifacts and concept-review files were written; no product source was edited |
+| First redesigned E2E run passed 20/28 but timed out on four repeated locators across both desktop and Pixel 7: voucher rows, reviewer evidence button, and recycling submit copy | 1 | Inspect failure DOM/screenshots once, then correct accessible locators or routing; do not weaken API/state assertions |
+| Focused retry fixed device flow but exposed voucher display grouping as `DEMO -000 1` and reviewer mocks returning `{}` because pathname excludes the query string | 2 | Normalize display grouping after removing separators, and match reviewer queue mocks on `/review/claims`; keep the raw code for QR/API use |
+| Initial in-app Browser screenshot call used `tab.playwright.screenshot`, but this runtime exposes screenshots on `tab.screenshot` | 1 | Reuse the existing tab binding and call the documented tab-level screenshot method; initial navigation itself succeeded |
+| First typography-refinement E2E run passed 23/28; the shortened Home CTA duplicated the `ทำกิจกรรม` navigation name, and one wallet assertion still expected the previous locked copy | 1 | Rename the primary CTA to the equally concise but distinct `เริ่มกิจกรรม`, and update the stale assertion to `ขาด 20 คะแนน`; no product state or API behavior changed |
+| First post-reload Home wait omitted the required explicit visibility state, and the corrected wait then found the welcome screen because React role state resets on reload | 2 | Inspect the live DOM, enter through the rendered `เริ่มใช้งาน` control, and wait on the loaded Home heading; do not treat session storage as restored in-memory role state |
+| First mobile tab-level screenshot retained the outer desktop canvas around the 390×844 responsive page | 1 | Keep the verified viewport override, then capture the mobile content with an explicit screenshot clip rather than repeating the uncropped call |
+| The explicit 390×844 screenshot clip showed only half the intended CSS width because this in-app renderer emits the mobile surface at 2× pixel density; locator bounding boxes are not exposed by this browser API | 2 | Use a 780×1688 source capture for a 390×844 CSS viewport, verify the complete render, and produce a 390×844 inspection derivative; do not diagnose overflow from the invalid half-width crop |
+| Running the completion checker from the repository root did not resolve the slug-scoped active plan and reported no `task_plan.md` | 1 | Run the checker from the concrete active plan directory; the plan file itself remains complete and unchanged |
+| After resetting the temporary viewport override, clicking the already-active Home item failed because the in-app browser mapped its bottom-nav point outside the visible canvas | 1 | Home was already the active page; skip the redundant click, wait on the existing `คะแนนของคุณ` heading, capture, and finalize the tab |
+| Focused Playwright retry used a stale project name `chromium` | 1 | Re-ran the same focused test with the configured `chromium-desktop` project; the following product-test failure was a stale `พร้อมตรวจสอบ` assertion and passed after updating it to the approved `พร้อมส่ง` copy |
+| A parent-directory `rg --files ..` discovery crossed macOS-protected locations and emitted permission noise | 1 | Restrict every remaining search to `/Users/um-yunsang/Net-Zero` and never repeat the broad parent scan |
+| First Phase 6 planning patch used stale checklist wording | 1 | Read the live plan tail and patched against its exact current text |
+| The default database migration test skipped because `TEST_DATABASE_URL` was unset | 1 | Created a uniquely named isolated PostGIS database, ran all three migration assertions successfully, and removed only that temporary database |
+| The first isolated demo-separation run passed all product behavior but retained a stale expectation for `evidence.content.read` even though the current mock tree path deliberately never calls the external verifier | 1 | Updated the audit expectation to the actual `factor.mock_demo_approved` event and reran the complete isolated suite: 10/10 passed |
+| The first Phase 7 database rerun returned the former 23-point tree value because the persistent test database had only migration 001 | 1 | Applied migrations 002 and 003 to that test database, reran demo separation 10/10, then independently verified 001–003 from empty in a uniquely named database and removed it |
+| The first Korean Wallet regression assertion assumed the live API's 40-point reward order, while the E2E fixture correctly returned the 20-point reward first | 1 | Asserted the fixture's actual first localized title and retained the layout measurements; the focused desktop/Pixel rerun passed 2/2 |

@@ -26,8 +26,8 @@ describeDatabase('initial database migration', () => {
   });
 
   it('installs immutable-ledger protections and records no migration twice', async () => {
-    const triggers = await sql<{ tgname: string }>`select tgname from pg_trigger where tgname in ('calculation_snapshots_immutable', 'carbon_ledger_immutable', 'point_ledger_immutable')`.execute(database);
-    expect(triggers.rows.map((row) => row.tgname)).toHaveLength(3);
+    const triggers = await sql<{ tgname: string }>`select tgname from pg_trigger where tgname in ('calculation_snapshots_immutable', 'carbon_ledger_immutable', 'point_ledger_immutable', 'point_mock_demo_reward_policy', 'claim_mock_demo_reward_credit')`.execute(database);
+    expect(triggers.rows.map((row) => row.tgname)).toHaveLength(5);
     expect(await migrate(database)).toEqual([]);
   });
 

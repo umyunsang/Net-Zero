@@ -20,6 +20,17 @@ const EMPTY_TOTALS: ImpactTotals = {
   projected_sequestration_co2e: "0",
 };
 
+const MOCK_LEADERBOARD = [
+  { pseudonym_th: "ใบไม้ยามเช้า", weekly_points: 75 },
+  { pseudonym_th: "สายลมเจ้าพระยา", weekly_points: 63 },
+  { pseudonym_th: "สวนเล็กกลางเมือง", weekly_points: 48 },
+  { pseudonym_th: "รถเมล์สีเขียว", weekly_points: 39 },
+  { pseudonym_th: "เมล็ดพันธุ์วันใหม่", weekly_points: 30 },
+  { pseudonym_th: "เพื่อนโลกหมายเลขเจ็ด", weekly_points: 24 },
+  { pseudonym_th: "คลองใสใจดี", weekly_points: 18 },
+  { pseudonym_th: "ต้นกล้าริมทาง", weekly_points: 12 },
+];
+
 @Injectable()
 export class CommunityService {
   constructor(@Inject(DatabaseService) private readonly database: DatabaseService) {}
@@ -131,6 +142,24 @@ export class CommunityService {
       const viewer = preference.rows[0];
       await this.auditReadModel(client, userId, user.is_demo, "read_model.leaderboard_read");
 
+      const verifiedEntries = entries.rows.map((entry) => ({
+        pseudonym_th: entry.pseudonym_th,
+        weekly_points: Number(entry.weekly_points),
+      }));
+      const demoViewerWithoutPoints = user.is_demo
+        && viewer?.leaderboard_opt_in
+        && viewer.leaderboard_pseudonym
+        && !verifiedEntries.some((entry) => entry.pseudonym_th === viewer.leaderboard_pseudonym)
+        ? [{ pseudonym_th: viewer.leaderboard_pseudonym, weekly_points: 0 }]
+        : [];
+      const rankedEntries = [
+        ...verifiedEntries,
+        ...(user.is_demo ? MOCK_LEADERBOARD : []),
+        ...demoViewerWithoutPoints,
+      ]
+        .sort((left, right) => right.weekly_points - left.weekly_points || left.pseudonym_th.localeCompare(right.pseudonym_th))
+        .slice(0, 100);
+
       return {
         week_starts_at: boundary.week_start.toISOString(),
         data_scope: user.is_demo ? "demo" : "real",
@@ -140,7 +169,7 @@ export class CommunityService {
           opted_in: viewer?.leaderboard_opt_in ?? false,
           pseudonym_th: viewer?.leaderboard_pseudonym ?? null,
         },
-        entries: entries.rows.map((entry, index) => ({
+        entries: rankedEntries.map((entry, index) => ({
           rank: index + 1,
           pseudonym_th: entry.pseudonym_th,
           weekly_points: Number(entry.weekly_points),

@@ -9,8 +9,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg'],
       manifest: {
-        name: 'ก้าวลดคาร์บอน',
-        short_name: 'ก้าวลด',
+        name: 'Net Zero',
+        short_name: 'Net Zero',
         description: 'บันทึกกิจกรรมสีเขียวและดูค่าประมาณผลกระทบอย่างโปร่งใส',
         lang: 'th',
         start_url: '/',

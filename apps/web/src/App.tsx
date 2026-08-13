@@ -4,21 +4,24 @@ import { ConsumerApp } from "./consumer/ConsumerApp";
 import { OperationsApp } from "./operations/OperationsApp";
 import type { RequestState, Role } from "./product-types";
 import { BrandMark, Icon, Notice } from "./ui";
+import { LanguageSwitcher, useI18n } from "./i18n";
 
 function Welcome({ onStart, state, error }: { onStart: () => void; state: RequestState; error: string }) {
+  const { t } = useI18n();
   return (
     <main className="welcome-screen">
-      <BrandMark />
+      <header className="welcome-header"><BrandMark /><LanguageSwitcher /></header>
       <div className="welcome-visual" aria-hidden="true"><Icon name="activity" /><Icon name="bus" /><Icon name="recycling" /><Icon name="tree" /></div>
-      <div className="welcome-copy"><h1>เริ่มลดคาร์บอน<br />จากสิ่งที่ทำทุกวัน</h1><p>ทำกิจกรรม รับคะแนน แล้วแลกรางวัลที่ใช้ได้จริง</p></div>
-      <button className="primary-button welcome-button" disabled={state === "loading"} onClick={onStart}>{state === "loading" ? "กำลังเริ่ม…" : "เริ่มใช้งาน"}</button>
+      <div className="welcome-copy"><h1>{t("ลดคาร์บอน รับคะแนน")}</h1><p>{t("ทำกิจกรรม · รับคะแนน · แลกรางวัล")}</p></div>
+      <button className="primary-button welcome-button" disabled={state === "loading"} onClick={onStart}>{t(state === "loading" ? "กำลังเริ่ม…" : "เริ่มใช้งาน")}</button>
       <Notice state={state === "error" ? "error" : "idle"} error={error} />
-      <small>เวอร์ชันสาธิต · ภาษาไทย</small>
+      <small>{t("เวอร์ชันสาธิต")}</small>
     </main>
   );
 }
 
 export default function App() {
+  const { t } = useI18n();
   const [role, setRole] = useState<Role>();
   const [state, setState] = useState<RequestState>("idle");
   const [error, setError] = useState("");
@@ -32,7 +35,7 @@ export default function App() {
       setRole(nextRole);
       setState("success");
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "เข้าสู่ระบบไม่ได้");
+      setError(cause instanceof Error ? cause.message : t("เข้าสู่ระบบไม่ได้"));
       setState("error");
     }
   }

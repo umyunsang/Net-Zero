@@ -18,7 +18,6 @@ describeIntegration("complete Thai hackathon demo", () => {
   let app: NestFastifyApplication;
   let database: DatabaseService;
   let user: string;
-  let reviewer: string;
   let merchant: string;
   let admin: string;
 
@@ -30,7 +29,6 @@ describeIntegration("complete Thai hackathon demo", () => {
   beforeEach(async () => {
     await resetPublicData();
     user = await login(app, "user");
-    reviewer = await login(app, "reviewer");
     merchant = await login(app, "merchant");
     admin = await login(app, "admin");
   });
@@ -98,7 +96,7 @@ describeIntegration("complete Thai hackathon demo", () => {
       activity: "tree",
       status: "verified",
       impact_status: "credited",
-      awarded_points: 23,
+      awarded_points: 15,
       data_scope: "mock_demo",
       is_mock: true,
       demo_only: true,
@@ -123,24 +121,15 @@ describeIntegration("complete Thai hackathon demo", () => {
         evidenceIds: [recyclingEvidence.evidenceId],
         binCode: "DEMO-BIN-BKK-01:TOKEN-0001",
         material: "plastic",
-        itemCount: 2,
+        itemCount: 46,
         droppedOffAt: recyclingCapturedAt,
       })
       .expect(201);
-    expect(recycling.body.claim.status).toBe("pending_review");
-    await request(app.getHttpServer())
-      .get(`/api/evidence/${recyclingEvidence.evidenceId}/content`)
-      .set(bearer(reviewer))
-      .expect(200);
-    const reviewedRecycling = await request(app.getHttpServer())
-      .patch(`/api/review/claims/${recycling.body.claim.id}`)
-      .set(bearer(reviewer))
-      .send({ decision: "approve", approvedItemCount: 2 })
-      .expect(200);
-    expect(reviewedRecycling.body.claim).toMatchObject({
+    expect(recycling.body.claim).toMatchObject({
       activity: "recycling",
       status: "verified",
       impact_status: "credited",
+      awarded_points: 20,
     });
 
     const busStart = Date.now() - 180_000;
@@ -178,6 +167,7 @@ describeIntegration("complete Thai hackathon demo", () => {
       activity: "bus",
       status: "verified",
       impact_status: "credited",
+      awarded_points: 3,
     });
 
     const lineage = await database.query<{
@@ -225,7 +215,7 @@ describeIntegration("complete Thai hackathon demo", () => {
     expect(lineage.rows.find((row) => row.activity === "tree")).toMatchObject({
       impact_type: "projected_sequestration",
       kg_co2e: "9.500000",
-      points: 23,
+      points: 15,
       is_demo: true,
       is_synthetic: false,
       factor_status: "draft",
@@ -254,7 +244,7 @@ describeIntegration("complete Thai hackathon demo", () => {
       .get("/api/dashboard")
       .set(bearer(user))
       .expect(200);
-    expect(dashboardBeforeReward.body.points).toBe(23);
+    expect(dashboardBeforeReward.body.points).toBe(38);
     expect(Number(dashboardBeforeReward.body.personal.estimated_avoided_co2e)).toBeGreaterThan(0);
     expect(dashboardBeforeReward.body.personal.projected_sequestration_co2e).toBe("9.500000");
     expect(dashboardBeforeReward.body.community).toEqual(dashboardBeforeReward.body.personal);
@@ -317,7 +307,7 @@ describeIntegration("complete Thai hackathon demo", () => {
          (select balance from point_balances where user_id = '11111111-1111-4111-8111-111111111111') balance`,
       [issued.body.voucher.voucherId],
     );
-    expect(voucherProof.rows[0]).toEqual({ debits: 1, redemptions: 1, balance: 3 });
+    expect(voucherProof.rows[0]).toEqual({ debits: 1, redemptions: 1, balance: 18 });
     const voucherAudit = await database.query<{ event_type: string; metadata: Record<string, unknown> }>(
       `select event_type,metadata from audit_events
        where subject_id=$1 and event_type in ('voucher.issued','voucher.redeemed')
@@ -341,13 +331,15 @@ describeIntegration("complete Thai hackathon demo", () => {
       data_scope: "demo",
       viewer: { opted_in: true, pseudonym_th: "ผู้ใช้-ใบไม้-1001" },
       community_totals: {
-        verified_weekly_points: 23,
+        verified_weekly_points: 38,
         projected_sequestration_co2e: "9.500000",
       },
     });
-    expect(demoLeaderboard.body.entries).toEqual([
-      expect.objectContaining({ pseudonym_th: "ผู้ใช้-ใบไม้-1001", weekly_points: 23 }),
-    ]);
+    expect(demoLeaderboard.body.entries).toEqual(expect.arrayContaining([
+      expect.objectContaining({ pseudonym_th: "ผู้ใช้-ใบไม้-1001", weekly_points: 38 }),
+      expect.objectContaining({ pseudonym_th: "ใบไม้ยามเช้า", weekly_points: 75 }),
+      expect.objectContaining({ pseudonym_th: "สายลมเจ้าพระยา", weekly_points: 63 }),
+    ]));
     const auditLineage = await database.query<{ event_type: string }>(
       `select event_type from audit_events
        where metadata->>'correlation_id'='mock-demo:FIXTURE-BKK-20260812-01'
@@ -355,7 +347,7 @@ describeIntegration("complete Thai hackathon demo", () => {
     );
     expect([...new Set(auditLineage.rows.map((row) => row.event_type))]).toEqual(expect.arrayContaining([
       "claim.submitted",
-      "evidence.content.read",
+      "factor.mock_demo_approved",
       "factor.mock_demo_seeded",
       "impact.credited",
       "read_model.dashboard_read",
@@ -400,9 +392,12 @@ describeIntegration("complete Thai hackathon demo", () => {
       .get("/api/leaderboard/weekly")
       .set(bearer(user))
       .expect(200);
-    expect(optedOut.body.entries).toEqual([]);
+    expect(optedOut.body.entries).toEqual(expect.arrayContaining([
+      expect.objectContaining({ pseudonym_th: "ใบไม้ยามเช้า", weekly_points: 75 }),
+      expect.objectContaining({ pseudonym_th: "ต้นกล้าริมทาง", weekly_points: 12 }),
+    ]));
     expect(optedOut.body.viewer).toEqual({ opted_in: false, pseudonym_th: null });
-    expect(optedOut.body.community_totals.verified_weekly_points).toBe(23);
+    expect(optedOut.body.community_totals.verified_weekly_points).toBe(38);
   });
 });
 

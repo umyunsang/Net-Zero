@@ -3,8 +3,8 @@
   "kind": "synthetic-fixture-browser-gate-report",
   "status": "passed",
   "command": "pnpm test:e2e",
-  "runId": "d798bc94-72df-42e6-877e-3013d3ebe8d1",
-  "generatedAt": "2026-08-13T03:02:42.232Z",
+  "runId": "3a23acd6-b266-44c7-96e1-6e35bf951e04",
+  "generatedAt": "2026-08-13T10:05:16.446Z",
   "sourceFiles": [
     "apps/web/src/App.tsx",
     "apps/web/src/synthetic-fixtures.json",
@@ -14,7 +14,7 @@
     "apps/web/playwright.config.ts",
     "apps/web/scripts/write-device-gate-report.mjs"
   ],
-  "sourceHash": "sha256:7fc753df345ad0e9b6ded2652cf9763f8abb4ec143a07959b714256c7dad6304",
+  "sourceHash": "sha256:ca283c50d8816c3712516781d42019aea598a755a046e3a46750a6f4625882c7",
   "configHash": "sha256:d717acef5ff60fdd9c0b08292f28c116d2fb51406a7b274aa445846298acd2b2",
   "fixtureHash": "sha256:e95ce7502ae21b8e8e45f59b87fe931cfb21aff2d5ecafd4b2bb808a52ce4c88",
   "samplingIntervalMilliseconds": 30000,
@@ -33,7 +33,7 @@
     "background lifecycle fail-closed behavior",
     "visible mock/demo-only and physical-evidence-not-collected disclosure"
   ],
-  "playwrightCasesPassed": 24,
+  "playwrightCasesPassed": 30,
   "physicalEvidence": {
     "status": "not_collected"
   },

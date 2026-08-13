@@ -126,11 +126,17 @@ export type DashboardData = {
 };
 
 export type LeaderboardData = {
+  week_starts_at: string;
   data_scope: "demo" | "real";
   is_mock: boolean;
   demo_only: boolean;
   viewer: { opted_in: boolean; pseudonym_th: string | null };
   entries: { rank: number; pseudonym_th: string; weekly_points: number }[];
+  community_totals: {
+    estimated_avoided_co2e: string;
+    projected_sequestration_co2e: string;
+    verified_weekly_points: number;
+  };
 };
 
 export type LeaderboardConsent = {

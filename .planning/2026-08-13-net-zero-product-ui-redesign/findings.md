@@ -181,3 +181,64 @@
 - Existing styles are a single compressed dashboard layer. Replacing this file with true-white tokens, mobile bottom navigation, desktop rail, focused forms, reward cards, and voucher tickets is the cleanest fidelity path.
 - The approved split is now implemented with `App.tsx` as role/session composition, `ConsumerApp.tsx` as the consumer product, and `OperationsApp.tsx` as privileged workspaces. API paths and payloads remain unchanged.
 - An actual QR image can be generated locally from each voucher code with the installed `qrcode` package, satisfying the design without a remote service or concept-image substitution.
+
+## Verification discovery
+- Repository-wide static and unit verification passes. Existing API suites that require integration/database conditions remain skipped by their pre-existing test guards; the deterministic web E2E independently covers the redesigned flow.
+- The local Vite server is listening on port 5173 and the API process is listening on port 3000. The tested health-path guesses return 404, so readiness is established by the successful E2E/API interactions rather than an undocumented health URL.
+- The Codex in-app browser is available with explicit visibility and viewport controls. No prior user tab is claimable in the current browser run, so rendered QA should create one deliverable tab and keep it open at the verified product.
+- In-app Browser page identity passes at `http://127.0.0.1:5173/` with title `ก้าวลดคาร์บอน`. The welcome DOM contains only the approved consumer promise and one `เริ่มใช้งาน` action; the first viewport has no framework overlay or console warnings/errors.
+- The default in-app viewport is below the desktop breakpoint, so the consumer shell correctly uses the compact header and four-job bottom navigation. Immediately after login, navigation appears before Home data resolves; rendered QA must wait for the screen heading, not merely the shell navigation.
+- The live database currently represents the completed business loop: 3 available points, a verified tree activity, and a used 20-baht product voucher. Home renders these as contextual product state without internal identifiers or architecture copy.
+- The live Wallet clearly separates the 3-point balance, locked 20/40-point rewards, and the used voucher. The used voucher detail shows redemption time and readable code while rendering zero QR images and zero `แสดงให้ร้านค้า` actions, matching the approved terminal state.
+- No console warning/error appeared on the loaded Home or Wallet states.
+
+## Live typography refinement
+- The approved consumer-wallet layout remains valid, but the current render still gives explanatory sentences too much visual and verbal weight.
+- The user explicitly requested a more concise, instantly legible typographic treatment after viewing the live implementation.
+- Revised hierarchy: screen noun or outcome first, live number second, one action third; supporting copy is reduced to short fragments and trust detail remains progressive.
+- Primary consumer vocabulary is locked to `คะแนน`, `กิจกรรม`, `รางวัล`, and `บัตร`; long journey narration will not be reintroduced.
+- This feedback supersedes the exact DS copy where needed but does not change navigation, layout, score semantics, verification states, or voucher lifecycle.
+- Desktop render at 1440×1000 now reads in the intended order: `คะแนนของคุณ` → `3 คะแนน` → `อีก 17 คะแนน ถึงรางวัล` → `เริ่มกิจกรรม`; activity, reward, and recent-history labels no longer compete with explanatory paragraphs.
+- The desktop rail and two-column Home remain faithful to the approved structure. The short CTA `เริ่มกิจกรรม` is distinct from the navigation label `ทำกิจกรรม`, improving both comprehension and accessible targeting.
+- A 390×844 responsive override correctly activates the mobile layout, but the first tab-level capture retained the outer desktop canvas around the narrow page. A cropped mobile evidence capture is required before visual sign-off; this is a screenshot-framing issue, not a layout overflow finding.
+- The in-app renderer outputs the mobile viewport at 2× pixel density. A 780×1688 capture corresponds to the requested 390×844 CSS viewport; that render shows no clipping, overlap, or accidental wrapping. The earlier 390-pixel source capture represented half the CSS width and was not valid layout evidence.
+- Mobile Activity now resolves to three compact rows whose hierarchy is title → capture noun → point basis (`ตามระยะทาง`, `ตามจำนวน`, `23 คะแนน`). The trust sentence is reduced to `ผ่านตรวจ · รับคะแนน` and remains secondary.
+- Mobile Wallet resolves to `กระเป๋า` → `3 คะแนน` → reward cost/deficit → `บัตร`. No tutorial narrative is visible; the only transaction disclosure is `ออกบัตรสำเร็จ · หักคะแนน`.
+- Activity and Wallet DOM snapshots remain semantically structured, navigation active states are correct, and the error/warning console remains empty.
+- Direct `view_image` comparison confirms desktop structure, palette, rail, balance/CTA sequence, three activity rows, reward, and recent-state column remain faithful while the user-authorized shorter copy improves hierarchy.
+- The first 390×844 derivative made from a 780-wide browser source is visually too dense and cannot serve as native mobile sign-off evidence. The fidelity ledger keeps mobile pending until a fresh native-width render resolves the capture-scale ambiguity.
+- A fresh 430-wide in-app capture renders the compact Home hierarchy cleanly with no clipped title, balance, CTA, activity, reward, or history content. Pixel 7 E2E receives an explicit document-width assertion so mobile overflow is verified independently of screenshot framing.
+
+## Presentation-speed activity feedback
+- New outcome: the presenter should complete the bus path in roughly 2–3 seconds from one start action, and a recycling submission should be accepted and reflected without switching to an admin/reviewer role.
+- The request is explicitly for the presentation prototype, so any assumption of valid activity must remain isolated to `mock_demo`; production verification behavior must not silently weaken.
+- Target flows: `ขึ้นรถโดยสาร → เริ่ม → 2–3 วินาที → สำเร็จ` and `ส่งรีไซเคิล → ส่ง → ยืนยันอัตโนมัติ → คะแนนเข้า`.
+- The approved consumer-wallet IA, typography, reward catalog, voucher lifecycle, and non-demo trust boundary remain unchanged.
+- The bus verifier already evaluates the synthetic route from 30-second timestamps. The presentation can therefore replay those seven samples every 400 ms while retaining the verification payload's original timing, yielding one-click completion in about 2.4 seconds without weakening the route oracle.
+- Recycling previously always created `pending_review`. The safe fast path is scoped by all three conditions: the redeemed QR/account is demo data, `MOCK_DEMO_ENABLED` is true, and database scope is `mock_demo`; all other submissions remain `pending_review`.
+- Demo auto-verification records `approved_count = declared_count`, runs the existing immutable carbon/point credit function, and writes an explicit `mock_demo_auto_verified` audit marker. It does not bypass the factor ledger or voucher accounting.
+- Consumer success copy now follows the returned claim: a verified action shows `สำเร็จแล้ว` and the awarded points, while any non-verified response still shows `ส่งแล้ว` and `รอตรวจสอบ`.
+- Live in-app verification passed against the running API: bus reached `สำเร็จแล้ว / ยืนยันแล้ว` after one Start and roughly 2.4 seconds; recycling 46 PET items reached `สำเร็จแล้ว / +20 คะแนน` without a reviewer role.
+- The first live recycling retry correctly exposed that the deterministic QR is one-time and had been consumed by prior prototype state. Resetting only the isolated `mock_demo` fixture restored the 0-point start and QR; the same live flow then passed.
+- After verification, `mock_demo` was reset again so the presenter receives a clean 0-point account and unused recycling QR. The in-app browser is left on the three-activity hub, ready for the first presentation action.
+
+## Reward, leaderboard, and multilingual expansion
+- User-authorized outcomes: mock-demo tree verification must award 15 points; mock-demo bus verification must award 3 points; consumers must be able to see a populated mock leaderboard; and the whole product must switch immediately among Thai, English, and Korean from a header control.
+- Preserve the approved wallet skeleton, carbon-impact factors, voucher costs, evidence verification, and production scoring behavior. New reward overrides must be explicit mock-demo policy rather than altered carbon factors.
+- The language selector is a global product control, not another primary navigation destination. Selection should persist locally and update the document language plus all visible role surfaces without reload.
+- The user reattached seven approved renders and explicitly rejected current visual drift. Those renders are the visual authority for mobile Home, Activity, Wallet, tree detail, voucher detail and desktop Home/Wallet: white canvas, green line-illustration language, mobile top header plus bottom tabs, desktop left sidebar, generous whitespace, and restrained bordered cards.
+- The new leaderboard and language selector must be integrated into that approved composition rather than creating another navigation job or presentation-style surface.
+
+## Phase 7 typography acceptance
+- Typography is now an explicit user-owned acceptance surface, not a secondary styling check.
+- The user has now re-declared the seven original generated PNGs under `.codex/generated_images/019ff90e-4437-7c40-a473-5553a64d6af9/` as the exact approved visual authority. These originals, not derivatives or earlier implementation screenshots, govern shell proportions, whitespace, Thai type scale, border treatment, icon stroke, and responsive composition.
+- The approved originals are five 853×1844 mobile screens and two 1586×992 desktop screens. Their SHA-256 values were captured in the Phase 7 progress record so later visual comparisons cannot silently substitute a different derivative.
+- Preserve the approved local font policy with no remote dependency, but make fallback order language-aware so Thai, English, and Korean each receive stable glyph metrics.
+- Verify screen-title, section-title, row-title, body/control, caption, and tabular-number roles independently at mobile and desktop widths.
+- Reject clipped ascenders/descenders, faux-bold glyphs, accidental one-word wraps, over-tight Thai line height, mixed numeral alignment, and language-switch width jumps that disturb the approved composition.
+- Verified policy result: an isolated complete demo returned tree `15`, recycling `20`, and bus `3`, with dashboard and opted-in viewer leaderboard totals of `38`; issuing the 20-point voucher left `18` in that combined-flow test.
+- The fixed reward policy is enforced only for claims whose persisted `data_scope` is `mock_demo`. Production claims still use the existing calculated points and approved factor path.
+- A second database trigger is required because the existing impact evaluator intentionally omits a point-ledger insert when the calculated award is zero. The fallback runs only after a mock-demo bus/tree claim becomes credited and only when no credit row exists, preserving idempotency and the immutable ledger.
+- Demo rankings remain visible even when the viewer opts out; consent controls only whether that viewer joins under a pseudonym. Production leaderboard results do not receive mock rows.
+- Immediate translation coverage is centralized and persistent. The live browser confirmed Thai, English, and Korean labels for brand, navigation, Home, activity names, rewards, Profile, and leaderboard, with selection retained after reload.
+- The final live desktop Home aligns with the accepted desktop reference in shell, visual hierarchy, hero balance, primary CTA, activity cards, reward/recent secondary column, and white/green/orange visual system. The user-requested leaderboard is added below the existing right-column product content rather than as a fifth primary navigation job.

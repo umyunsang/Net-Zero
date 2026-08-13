@@ -262,8 +262,8 @@ export class ClaimsService {
       if (replay !== undefined) return replay;
       await this.assertEvidence(client, userId, input.evidenceIds, "photo");
       const tokenHash = createHash("sha256").update(input.binCode).digest("hex");
-      const token = await client.query<{ bin_id: string }>(
-        `select token.bin_id
+      const token = await client.query<{ bin_id: string; is_demo: boolean }>(
+        `select token.bin_id,account.is_demo
          from qr_tokens token
          join qr_bins bin on bin.id = token.bin_id and bin.active = true and bin.is_demo=token.is_demo
          join users account on account.id = $2 and account.is_demo = token.is_demo
@@ -272,13 +272,32 @@ export class ClaimsService {
         [tokenHash, userId],
       );
       if (!token.rows[0]) this.invalid("รหัส QR จุดรับไม่ถูกต้อง หมดอายุ หรือถูกใช้แล้ว");
-      const claim = await this.createClaim(client, userId, "recycling", idempotencyKey, requestDigest, "pending_review", "recycling_pending_review");
-      await client.query("update claims set impact_input=$2 where id=$1", [claim, JSON.stringify({ material: input.material, declared_count: input.itemCount })]);
-      await client.query("insert into recycling_declarations(claim_id,user_id,bin_id,material,declared_count) values($1,$2,$3,$4,$5)", [claim, userId, token.rows[0].bin_id, input.material, input.itemCount]);
+      const redemption = token.rows[0]!;
+      const autoVerifyDemo = redemption.is_demo
+        && this.config.MOCK_DEMO_ENABLED
+        && this.config.DATABASE_DATA_SCOPE === "mock_demo";
+      const state: State = autoVerifyDemo ? "verified" : "pending_review";
+      const reason = autoVerifyDemo ? "reviewer_confirmed" : "recycling_pending_review";
+      const impactInput = {
+        material: input.material,
+        declared_count: input.itemCount,
+        ...(autoVerifyDemo ? { approved_count: input.itemCount } : {}),
+      };
+      const claim = await this.createClaim(client, userId, "recycling", idempotencyKey, requestDigest, state, reason);
+      await client.query("update claims set impact_input=$2 where id=$1", [claim, JSON.stringify(impactInput)]);
+      await client.query(
+        "insert into recycling_declarations(claim_id,user_id,bin_id,material,declared_count,approved_count) values($1,$2,$3,$4,$5,$6)",
+        [claim, userId, redemption.bin_id, input.material, input.itemCount, autoVerifyDemo ? input.itemCount : null],
+      );
       await client.query("update qr_tokens set consumed_at=now(),consumed_claim_id=$2 where token_hash=$1", [tokenHash, claim]);
-      await client.query("insert into qr_token_redemptions(token_hash,bin_id,claim_id,consumed_at) values($1,$2,$3,now())", [tokenHash, token.rows[0].bin_id, claim]);
+      await client.query("insert into qr_token_redemptions(token_hash,bin_id,claim_id,consumed_at) values($1,$2,$3,now())", [tokenHash, redemption.bin_id, claim]);
+      if (autoVerifyDemo) await this.credit(client, claim, userId, "recycling");
       await this.bindEvidence(client, claim, input.evidenceIds);
-      await this.audit(client, userId, "claim.submitted", "claim", claim, { activity: "recycling", evidence: "delivery_only" });
+      await this.audit(client, userId, "claim.submitted", "claim", claim, {
+        activity: "recycling",
+        evidence: "delivery_only",
+        verification: autoVerifyDemo ? "mock_demo_auto_verified" : "review_required",
+      });
       const response = await this.claimResponse(client, claim);
       await this.completeClaimIdempotency(client, userId, "recycling", idempotencyKey, claim, response);
       return response;
@@ -473,8 +492,8 @@ export class ClaimsService {
 
   async correctImpact(actor: string, claimId: string, input: { correctedTotalKgCo2e: string; reason: string }) {
     return this.database.transaction(async client => {
-      const claim = await client.query<{ user_id: string; activity: Activity; state: State; impact_status: string }>(
-        `select claim.user_id,claim.activity,claim.state,claim.impact_status from claims claim
+      const claim = await client.query<{ user_id: string; activity: Activity; state: State; impact_status: string; data_scope: "mock_demo" | "production" }>(
+        `select claim.user_id,claim.activity,claim.state,claim.impact_status,claim.data_scope from claims claim
          join users owner on owner.id=claim.user_id join users reviewer on reviewer.id=$2
          where claim.id=$1 and owner.is_demo=reviewer.is_demo for update of claim`,
         [claimId,actor],
@@ -517,7 +536,12 @@ export class ClaimsService {
       const corrected = new Decimal(input.correctedTotalKgCo2e);
       if (!corrected.isFinite() || corrected.isNegative()) this.invalid("ผลรวมที่แก้ไขต้องเป็นเลขไม่ติดลบ");
       const carbonDelta = corrected.minus(previous.kg).toDecimalPlaces(6, Decimal.ROUND_HALF_EVEN).toFixed(6);
-      const targetPoints = calculatePoints(source.impact_type === "projected_sequestration" ? "projected_sequestration_co2e" : "estimated_avoided_co2e", corrected.toFixed(6));
+      const calculatedPoints = calculatePoints(source.impact_type === "projected_sequestration" ? "projected_sequestration_co2e" : "estimated_avoided_co2e", corrected.toFixed(6));
+      const targetPoints = target.data_scope === "mock_demo" && target.activity === "tree"
+        ? 15
+        : target.data_scope === "mock_demo" && target.activity === "bus"
+          ? 3
+          : calculatedPoints;
       const pointDelta = targetPoints - previous.points;
       if (new Decimal(carbonDelta).isZero() && pointDelta === 0) this.invalid("ค่าที่แก้ไขไม่เปลี่ยนจากผลรวมปัจจุบัน");
       const calculation = await client.query<{ id: string }>(
