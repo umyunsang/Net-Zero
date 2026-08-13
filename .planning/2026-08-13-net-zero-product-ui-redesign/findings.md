@@ -179,3 +179,5 @@
 - The current E2E mock infrastructure is suitable for visual states: it can seed 0 or 23 points, issued/redeemed vouchers, claim status mixes, role-specific queues, and leaderboard consent without altering the local database.
 - Operator behaviors that must remain unchanged are explicitly covered: reviewer evidence failure copy, tree/recycling decisions, bus-oracle non-bypass, merchant single-use rejection, server-error Thai mapping, and admin confirmation/readiness separation.
 - Existing styles are a single compressed dashboard layer. Replacing this file with true-white tokens, mobile bottom navigation, desktop rail, focused forms, reward cards, and voucher tickets is the cleanest fidelity path.
+- The approved split is now implemented with `App.tsx` as role/session composition, `ConsumerApp.tsx` as the consumer product, and `OperationsApp.tsx` as privileged workspaces. API paths and payloads remain unchanged.
+- An actual QR image can be generated locally from each voucher code with the installed `qrcode` package, satisfying the design without a remote service or concept-image substitution.
