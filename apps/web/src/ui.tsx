@@ -67,12 +67,13 @@ export function ActivityIcon({ activity, ...props }: { activity: Activity } & Om
 export function BrandMark({ compact = false }: { compact?: boolean }) {
   return (
     <span className="brand-mark" aria-label="Net Zero">
-      <svg viewBox="0 0 38 38" aria-hidden="true">
-        <path d="M30.5 5.5C18 6 8.7 11.8 7.8 22.7c-.4 5.4 3.8 9.6 9.2 8.7 8.1-1.3 12.7-10.7 13.5-25.9Z" fill="currentColor"/>
-        <path d="M5.5 33C10.2 22.4 16 16.2 25.5 10" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-        <circle cx="27.8" cy="4.8" r="2.7" fill="currentColor" stroke="white" strokeWidth="1.2"/>
+      <svg className="brand-symbol" viewBox="0 0 40 40" aria-hidden="true">
+        <circle cx="20" cy="20" r="15.5" fill="none" stroke="currentColor" strokeWidth="3" />
+        <path d="M28.8 10.5c-7.9.4-13.1 4.3-13.7 10.3-.4 4.1 2.8 7.2 6.8 6.3 5-1.1 7.2-7.2 6.9-16.6Z" fill="currentColor" />
+        <path d="M11.3 29.8c3.7-7.1 7.5-11.4 13.5-15.1" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
+        <circle className="brand-accent" cx="31.2" cy="8.2" r="2.4" />
       </svg>
-      {!compact && <strong>Net Zero</strong>}
+      {!compact && <strong className="brand-wordmark"><span>Net</span>{" "}<span>Zero</span></strong>}
     </span>
   );
 }

@@ -132,10 +132,16 @@ function BalanceModule({ points, reward }: { points: number; reward?: Reward }) 
   );
 }
 
-function ActivityScene({ activity }: { activity: Activity }) {
+const compactSceneViewBox: Record<Activity, string> = {
+  bus: "88 8 226 74",
+  recycling: "216 8 142 74",
+  tree: "188 8 100 74",
+};
+
+function ActivityScene({ activity, compact = false }: { activity: Activity; compact?: boolean }) {
   return (
-    <span className={`activity-scene ${activity}`} aria-hidden="true">
-      <svg viewBox="0 0 360 82">
+    <span className={`activity-scene ${activity}${compact ? " compact-scene" : ""}`} aria-hidden="true">
+      <svg viewBox={compact ? compactSceneViewBox[activity] : "0 0 360 82"} preserveAspectRatio="xMidYMid meet">
         <path d="M2 72h356M34 72V51m0 0c-14-9-14-24 0-31 14 7 14 22 0 31Zm274 21V48m0 0c-12-8-12-21 0-27 12 6 12 19 0 27Z" />
         {activity === "bus" && <><rect x="116" y="42" width="96" height="28" rx="5"/><circle cx="135" cy="71" r="8"/><circle cx="193" cy="71" r="8"/><path d="M126 49h65M212 54h17v16M256 72V39h25v33M264 49h6M264 59h6"/></>}
         {activity === "recycling" && <><path d="M238 30h48l-4 42h-40l-4-42Zm-6 0h60M252 20h20M252 48l9-9 8 9M269 48l-8 9-9-9"/><path d="M304 37h15v35h-15zM325 47h20v25h-20z"/></>}
@@ -154,7 +160,7 @@ function ActivityRow({ activity, onClick, compact = false }: { activity: Activit
       <span className="activity-icon"><ActivityIcon activity={activity} /></span>
       <span className="activity-row-copy"><strong>{copy.title}</strong><small>{copy.detail}</small>{!compact && <em>{copy.reward}</em>}</span>
       <Icon className="chevron" name="chevron" />
-      {!compact && <ActivityScene activity={activity} />}
+      <ActivityScene activity={activity} compact={compact} />
     </button>
   );
 }
@@ -564,7 +570,7 @@ function WalletScreen({ onOpenVoucher, refreshKey }: { onOpenVoucher: (voucher: 
       api<Voucher[] | { items: Voucher[] }>("/rewards/vouchers"),
       api<DashboardData>("/dashboard"),
     ]).then(([rewards, result, dashboard]) => {
-      setCatalog(rewards.items);
+      setCatalog([...rewards.items].sort((left, right) => left.pointsCost - right.pointsCost || left.rewardId.localeCompare(right.rewardId)));
       setVouchers(Array.isArray(result) ? result : result.items);
       setBalance(dashboard.points);
       setState("success");
