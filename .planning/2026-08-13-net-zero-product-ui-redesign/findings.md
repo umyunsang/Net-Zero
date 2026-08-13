@@ -218,9 +218,29 @@
 - Recycling previously always created `pending_review`. The safe fast path is scoped by all three conditions: the redeemed QR/account is demo data, `MOCK_DEMO_ENABLED` is true, and database scope is `mock_demo`; all other submissions remain `pending_review`.
 - Demo auto-verification records `approved_count = declared_count`, runs the existing immutable carbon/point credit function, and writes an explicit `mock_demo_auto_verified` audit marker. It does not bypass the factor ledger or voucher accounting.
 - Consumer success copy now follows the returned claim: a verified action shows `สำเร็จแล้ว` and the awarded points, while any non-verified response still shows `ส่งแล้ว` and `รอตรวจสอบ`.
+
+## Thailand-based carbon-impact extension intake
+- The new request changes the meaning and evidence basis of a consumer-facing metric, so approved `SK@v1` / `DS@v1` do not authorize immediate factor or UI mutation.
+- The current database design is already structurally suitable: `factor_catalog` stores versioned source/method assumptions; `calculation_snapshots` preserve input/formula/result; `carbon_ledger` separates `avoided` from `projected_sequestration`; dashboard contracts expose both totals.
+- The current backend candidate formulas are: bus `distance_km × (private-car passenger-km factor − bus passenger-km factor)`, recycling `accepted count × PET item proxy`, and tree `one-year projected proxy × one tree`.
+- The deployed browser-local public demo does not consume that authority and instead hard-codes bus `0.30`, recycling `2.50`, and tree `3.00` kgCO₂e. These values are not parity evidence for the current factor catalog.
+- History already renders a generic estimated kgCO₂e line, but Activity success only shows points and Home does not render its existing personal avoided/projected totals.
+- Scientifically safe consumer semantics require bus/recycling to remain estimated avoided emissions and tree to remain projected sequestration over an explicit horizon. An unlabeled sum would conflate different time/status classes.
+- “Total value” is provisionally normalized to cumulative kgCO₂e, not THB. Monetary carbon valuation remains out of scope unless explicitly requested with a chosen price basis.
+- `SK@v2` defines four research questions: Thailand passenger transport, Thailand PET recycling, Thai tree sequestration, and cross-cutting accounting/uncertainty. External research remains blocked until exact skeleton approval.
 - Live in-app verification passed against the running API: bus reached `สำเร็จแล้ว / ยืนยันแล้ว` after one Start and roughly 2.4 seconds; recycling 46 PET items reached `สำเร็จแล้ว / +20 คะแนน` without a reviewer role.
 - The first live recycling retry correctly exposed that the deterministic QR is one-time and had been consumed by prior prototype state. Resetting only the isolated `mock_demo` fixture restored the 0-point start and QR; the same live flow then passed.
 - After verification, `mock_demo` was reset again so the presenter receives a clean 0-point account and unused recycling QR. The in-app browser is left on the three-activity hub, ready for the first presentation action.
+
+## SK@v2 research synthesis and DS@v2
+- The user approved `SK@v2` exactly, authorizing the four bounded research questions and preparation of `DS@v2`; product code and publication remain blocked until exact design approval.
+- The 28-source ledger prioritizes TGO/T-VER methods and Thai official data, then uses IPCC/UNFCCC/GHG Protocol methods and peer-reviewed Thai studies to resolve boundaries and uncertainty.
+- Bus: the fixed `0.799211 km` route multiplied by the TGO passenger-km difference (`0.12710 − 0.01120`) yields `0.0926286 kg CO₂`. It is a same-distance private-car comparison, not proof that this participant displaced a car trip.
+- PET: 46 bottles, a Thai mixed-bottle body-mass proxy, `0.75` qualifying output yield, current TGO PET/grid factors, method quality factor, and recycling electricity yield `1.7609 kg CO₂e`. This remains conditional on successful recycling and virgin-PET substitution.
+- Tree: the current TGO count factor `9.5 kg CO₂/tree/year`, a five-year horizon, and a `0.63` observed Bangkok survival factor yield `29.925 kg CO₂e`. It is projected sequestration for an eligible maintained tree, not immediate reduction or a carbon credit.
+- Home after all three activities therefore shows two separate values: about `1.9 kg CO₂e estimated avoided` and about `30 kg CO₂e projected absorption over 5 years`. A single `31.9 kg reduced` total is explicitly rejected.
+- `DS@v2` preserves the Fable typography/scenes, point-first hero, green CTA, four-destination navigation, reward/voucher semantics, and invariant `Net Zero` wordmark. It adds only a secondary success receipt, a compact two-row Home module, and type-aware history copy.
+- `DS@v2` specifies exact Thai/English/Korean copy, shared calculation authority, immutable method snapshots, public-demo/API parity, responsive contracts, and the exact `0 → 38 points → 20-point voucher → 18` presentation flow without changing carbon totals at redemption.
 
 ## Reward, leaderboard, and multilingual expansion
 - User-authorized outcomes: mock-demo tree verification must award 15 points; mock-demo bus verification must award 3 points; consumers must be able to see a populated mock leaderboard; and the whole product must switch immediately among Thai, English, and Korean from a header control.
@@ -238,6 +258,9 @@
 - The requested Cloudflare target is a publicly reachable mock presentation demo for PT audiences, not an operational production service. It must not connect production data, administrator workflows, or real-user state.
 - Cloudflare Pages project creation returned an account-side HTTP 500 (`code 8000000`), so publication used Cloudflare Workers Static Assets instead. The deployed SPA is still static and uses the same browser-local mock-only boundary.
 - The public build starts every new browser at 0 points and persists only in that browser. Completing bus, a 46-item recycling sample, and tree awards 3 + 20 + 15 = 38 points; redeeming the 20-point voucher leaves 18 points while weekly earned points remain 38 on the leaderboard.
+- That `38` is a reproducible presentation checkpoint only. It is not stored as a goal cap: each repeated bus or tree submission appends another claim and per-activity award, while recycling points and carbon impact scale with the submitted and accepted PET count. Dashboard carbon values are raw claim-ledger sums, independent of voucher redemption.
+- Home totals below 10 kg use up to two decimal places so repeated low-impact activities visibly move the UI (`0.09` after one bus and `0.19` after two) instead of appearing frozen by one-decimal presentation rounding. Individual receipts remain compact and use the approved coarser display convention.
+- The PET receipt note is count-generic after the user's dynamic-activity clarification. The `46` bottle case remains the 20-point presentation example, but a 23-bottle claim now correctly shows its own 10-point and carbon result without copy that falsely describes 46 bottles.
 - The new leaderboard and language selector must be integrated into that approved composition rather than creating another navigation job or presentation-style surface.
 
 ## Phase 7 typography acceptance

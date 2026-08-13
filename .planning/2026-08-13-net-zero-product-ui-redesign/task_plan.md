@@ -4,10 +4,10 @@
 Replace the presentation/deck-like frontend with a consumer-facing Thai product experience. Preserve the proven activity-to-points-to-voucher business loop while hiding internal architecture, requirements, governance, and demo-operation details from ordinary users.
 
 ## Workflow State
-`IMPLEMENTATION_AUTHORIZED(DS@v1)`
+`IMPLEMENTATION_AUTHORIZED(DS@v2_CARBON_IMPACT)`
 
 ## Current Phase
-Phase 8
+Phase 12
 
 ## Phases
 
@@ -111,12 +111,41 @@ Phase 8
 - [x] Record the deployment URL, version evidence, and remaining infrastructure boundary
 - **Status:** complete
 
+### Phase 11: Thailand-based carbon-impact extension
+- [x] Inspect the existing factor catalog, calculation authority, carbon ledger, dashboard totals, consumer result/history surfaces, and public-demo adapter
+- [x] Record the mismatch between the versioned backend calculations and public-demo hard-coded impact values
+- [x] Create the bounded `SK@v2` measurement, UI, claim-boundary, and research skeleton
+- [x] Obtain exact user approval for `SK@v2`
+- [x] Complete the approved Thailand/TGO/IPCC/peer-reviewed research manifest and source ledger
+- [x] Produce and obtain approval for evidence-backed `DS@v2`
+- [ ] Implement the approved calculation and consumer impact surfaces
+- [ ] Verify locally, publish to main, redeploy the mock presentation, and verify the public URL
+- **Status:** implementation in progress
+
+### Phase 12: Carbon-impact implementation and publication
+- [x] Implement shared calculations, receipts, dashboard totals, history copy, and persistence
+- [x] Verify one-of-each and repeated-activity accumulation, responsive UI, language switching, and the complete presentation path
+- [ ] Commit by work unit, push `main`, redeploy the presentation mock, and verify the public URL
+- **Status:** in progress
+
+## Approved carbon-impact artifact
+- `SK@v2`: `.planning/2026-08-13-net-zero-product-ui-redesign/skeleton_SK_v2_carbon_impact.md`
+- SHA-256: `35d13bb0c0655489582152fb03f56fc5f434d69c83843c594a0059057c0f26d9`
+- Approval receipt: `.planning/2026-08-13-net-zero-product-ui-redesign/approval_receipts.md`
+- Authorized scope: bounded read-only deep research and `DS@v2` preparation only; no product-code or deployment change.
+- Research report: `.planning/2026-08-13-net-zero-product-ui-redesign/research_report_v2_carbon_impact.md`
+- Research report SHA-256: `f7b9dc207cf4f0187f4138c35015a914c0949c91dfaf7e35e4cc8008af2201b5`
+- `DS@v2`: `.planning/2026-08-13-net-zero-product-ui-redesign/design_DS_v2_carbon_impact.md`
+- `DS@v2` SHA-256: `d774521b4ba29bbb28fb93446385c768b533ee29f8bb98b88d737f094cb89be2`
+- Approved scope: carbon calculation/data/UI implementation, local verification, scoped `main` publication, and redeployment of the existing browser-local presentation mock; no production-data or carbon-credit claim.
+
 ## Public presentation deployment receipt
 - URL: `https://net-zero-reward-demo.umyunsang.workers.dev`
 - Cloudflare Worker version: `96d330c5-6f68-42a7-a63e-cba247b5e6b3`
 - Hosting: Cloudflare Workers Static Assets with SPA fallback
 - Data boundary: browser-local mock state only; no production database, administrator workflow, or real-user data
 - Verified presentation path: 0 points -> bus 3 + recycling 20 + tree 15 = 38 -> redeem 20-point voucher -> 18-point balance -> leaderboard reflects 38 weekly points
+- The `38` value is only the one-of-each presentation example, never a fixed balance or cap. Every accepted activity creates another claim and immediately increments points, Home carbon totals, history, and weekly earned points. Recycling points and avoided impact scale with accepted item count.
 - Remote verification: Chromium desktop and Pixel 7, 2/2 passed, with zero `/api` requests
 
 ## Constraints

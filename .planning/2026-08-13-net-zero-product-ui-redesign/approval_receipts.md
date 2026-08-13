@@ -21,3 +21,26 @@
 - Authorized scope: implementation planning against `DS@v1`; no deployment or external action
 - Approving message: `DS@v1 승인`
 - Turn locator: current user turn dated 2026-08-13 (Asia/Bangkok)
+
+## 2026-08-13 — SK@v2
+- Artifact type: Thailand-based activity carbon-impact product and research skeleton
+- Stable ID: `SK`
+- Exact version: `v2`
+- SHA-256: `35d13bb0c0655489582152fb03f56fc5f434d69c83843c594a0059057c0f26d9`
+- Decision: approved
+- Approving authority: user
+- Authorized scope: bounded read-only deep research for RQ1–RQ4 and preparation of evidence-backed `DS@v2`; no product-code change, factor mutation, Git publication, Cloudflare deployment, or TGO/carbon-credit claim
+- Approving message: `SK@v2 탄소영향 확장 승인`
+- Turn locator: current user turn dated 2026-08-13 (Asia/Bangkok)
+
+## 2026-08-13 — DS@v2
+- Artifact type: Thailand carbon-impact design extension
+- Stable ID: `DS`
+- Exact version: `v2`
+- SHA-256: `d774521b4ba29bbb28fb93446385c768b533ee29f8bb98b88d737f094cb89be2`
+- Decision: approved
+- Approving authority: user
+- Authorized scope: calculation/data/UI implementation, local verification, scoped commits, push to `main`, and redeployment of the existing browser-local presentation mock
+- Exclusions: production user data, carbon-credit issuance, certified offset claims, or changes to the approved DS@v1/Fable visual system
+- Approving message: `DS@v2 탄소영향 설계 승인`
+- Turn locator: current user turn dated 2026-08-13 (Asia/Bangkok)

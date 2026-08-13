@@ -1,5 +1,24 @@
 # Progress: Net-Zero consumer product UI redesign
 
+## 2026-08-13 — Phase 11 carbon-impact intake
+- Classified the request as a new evidence-bearing consumer metric rather than a copy-only UI change.
+- Inspected the local calculation and display path without external research: factor catalog → calculation snapshot → carbon ledger → dashboard/history, plus the separate public-demo adapter.
+- Confirmed a material mismatch: the backend has versioned formulas and separate avoided/projected totals, while the public demo hard-codes three impact values and does not show Home totals.
+- Created `SK@v2` for Thailand-context research, type-aware UI semantics, formula parity, and bounded claims.
+- Current gate: exact `SK@v2` approval is required before web research or `DS@v2`; no product source, factor, Git remote, or deployment change has been made for this phase.
+
+## 2026-08-13 — SK@v2 approval receipt
+- Exact approval received: `SK@v2 탄소영향 확장 승인`.
+- Verified artifact SHA-256: `35d13bb0c0655489582152fb03f56fc5f434d69c83843c594a0059057c0f26d9`.
+- Authorized next work: bounded read-only RQ1–RQ4 deep research and evidence-backed `DS@v2` preparation.
+- Product-code changes, factor mutation, Git publication, and Cloudflare deployment remain outside this approval.
+
+## 2026-08-13 — SK@v2 research complete; DS@v2 approval pending
+- Completed the authorized research across 28 official/peer-reviewed sources. Selected presentation results are bus `0.0926286 kg CO₂`, PET 46 bottles `1.7609 kg CO₂e`, and one tree `29.925 kg CO₂e projected over five years`.
+- Created `research_report_v2_carbon_impact.md` with source ledger, equations, applicability classification, uncertainty, cheap falsification checks, and the explicit prohibition on combining avoided emissions with future sequestration. SHA-256: `f7b9dc207cf4f0187f4138c35015a914c0949c91dfaf7e35e4cc8008af2201b5`.
+- Created `DS@v2` with exact TH/EN/KO copy, success/Home/history component placement, shared calculation contract, Fable/DS@v1 preservation, responsive rules, factor-version behavior, full presentation totals, and verification targets. SHA-256: `d774521b4ba29bbb28fb93446385c768b533ee29f8bb98b88d737f094cb89be2`.
+- Workflow is paused at exact `DS@v2` approval. No carbon product-code, factor, Git, or Cloudflare change was made under the SK-only authority.
+
 ## 2026-08-13
 - Routed the feedback as a material product-design revision, not a small styling fix.
 - Read the active planning, brainstorming, and frontend design procedures completely.
@@ -141,3 +160,9 @@
 - Clarified the next publication boundary: Cloudflare will host a public mock presentation demo only, with no production DB, administrator approval service, or real-user data connection. Source commits and the remote `main` update precede that deployment.
 - Added a presentation-only browser data adapter and hid privileged role switching in that public build. Local desktop and Pixel 7 tests pass the complete 0 -> 38 -> voucher -> 18 -> leaderboard journey with zero `/api` requests; the normal API-backed E2E suite remains 36/36.
 - Published the mock SPA to `https://net-zero-reward-demo.umyunsang.workers.dev` as Cloudflare Worker version `96d330c5-6f68-42a7-a63e-cba247b5e6b3`. Remote desktop and Pixel 7 presentation tests pass 2/2.
+- Received exact `DS@v2 탄소영향 설계 승인` for design SHA-256 `d774521b4ba29bbb28fb93446385c768b533ee29f8bb98b88d737f094cb89be2`. Implementation is authorized for the approved Thailand calculation ledger, consumer carbon receipts and home totals, local verification, scoped commits, `main` push, and redeployment of the existing presentation mock. The Fable font, Fable scenes, DS@v1 navigation, point hierarchy, CTA hierarchy, colors, and container system remain protected acceptance surfaces.
+- Clarified the score model after the user's correction: `38` is the result of one bus + 46 PET + one tree, not a fixed target, cap, or terminal state. The public adapter and database award a new credit for every accepted claim; recycling points scale as `round(accepted items × 20 / 46)` while bus remains 3 per ride and tree remains 15 per accepted planting.
+- Increased Home carbon-total precision below 10 kg so small repeated actions remain visibly incremental. The verified repeat path is bus twice + PET 46 + PET 23 + tree twice = `66 points`, `2.83 kg CO₂e` estimated avoided, `60 kg CO₂e` projected absorption over five years, and six distinct history records.
+- Dynamic accumulation verification passes: carbon unit tests 5/5; public presentation E2E 6/6 across Chromium desktop and Pixel 7; fresh migration verification 3/3; API integration 15/15; and demo separation/full demo 10/10. The 2-item API recycling fixture confirms a proportional 1-point credit with `mock_demo_activity_v2` metadata.
+- During direct mobile review, the user explicitly removed the Home score module's Fable 3D city from the acceptance surface. The Home canvas is removed while Fable typography, the three activity illustrations, Welcome scene, and leaderboard scene remain unchanged.
+- The user then folded the Home carbon summary into the existing point card instead of retaining a separate carbon card. The point numeral/progress remains primary; avoided emissions and five-year projected absorption are a secondary in-card region that stacks below points on mobile and uses the former city column only at wide desktop widths.
