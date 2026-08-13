@@ -261,6 +261,7 @@
 - That `38` is a reproducible presentation checkpoint only. It is not stored as a goal cap: each repeated bus or tree submission appends another claim and per-activity award, while recycling points and carbon impact scale with the submitted and accepted PET count. Dashboard carbon values are raw claim-ledger sums, independent of voucher redemption.
 - Home totals below 10 kg use up to two decimal places so repeated low-impact activities visibly move the UI (`0.09` after one bus and `0.19` after two) instead of appearing frozen by one-decimal presentation rounding. Individual receipts remain compact and use the approved coarser display convention.
 - The PET receipt note is count-generic after the user's dynamic-activity clarification. The `46` bottle case remains the 20-point presentation example, but a 23-bottle claim now correctly shows its own 10-point and carbon result without copy that falsely describes 46 bottles.
+- Current public authority is Cloudflare Worker `b67ef2ac-5f94-4e2d-939d-7fb37925414c` at `https://net-zero-reward-demo.umyunsang.workers.dev`. It remains a browser-local presentation mock; deploying the static asset update did not attach a production database or operational verification service.
 - The new leaderboard and language selector must be integrated into that approved composition rather than creating another navigation job or presentation-style surface.
 
 ## Phase 7 typography acceptance

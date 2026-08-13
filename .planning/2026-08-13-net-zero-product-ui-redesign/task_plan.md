@@ -118,15 +118,15 @@ Phase 12
 - [x] Obtain exact user approval for `SK@v2`
 - [x] Complete the approved Thailand/TGO/IPCC/peer-reviewed research manifest and source ledger
 - [x] Produce and obtain approval for evidence-backed `DS@v2`
-- [ ] Implement the approved calculation and consumer impact surfaces
-- [ ] Verify locally, publish to main, redeploy the mock presentation, and verify the public URL
-- **Status:** implementation in progress
+- [x] Implement the approved calculation and consumer impact surfaces
+- [x] Verify locally, publish to main, redeploy the mock presentation, and verify the public URL
+- **Status:** complete
 
 ### Phase 12: Carbon-impact implementation and publication
 - [x] Implement shared calculations, receipts, dashboard totals, history copy, and persistence
 - [x] Verify one-of-each and repeated-activity accumulation, responsive UI, language switching, and the complete presentation path
-- [ ] Commit by work unit, push `main`, redeploy the presentation mock, and verify the public URL
-- **Status:** in progress
+- [x] Commit by work unit, push `main`, redeploy the presentation mock, and verify the public URL
+- **Status:** complete
 
 ## Approved carbon-impact artifact
 - `SK@v2`: `.planning/2026-08-13-net-zero-product-ui-redesign/skeleton_SK_v2_carbon_impact.md`
@@ -141,12 +141,12 @@ Phase 12
 
 ## Public presentation deployment receipt
 - URL: `https://net-zero-reward-demo.umyunsang.workers.dev`
-- Cloudflare Worker version: `96d330c5-6f68-42a7-a63e-cba247b5e6b3`
+- Cloudflare Worker version: `b67ef2ac-5f94-4e2d-939d-7fb37925414c`
 - Hosting: Cloudflare Workers Static Assets with SPA fallback
 - Data boundary: browser-local mock state only; no production database, administrator workflow, or real-user data
 - Verified presentation path: 0 points -> bus 3 + recycling 20 + tree 15 = 38 -> redeem 20-point voucher -> 18-point balance -> leaderboard reflects 38 weekly points
 - The `38` value is only the one-of-each presentation example, never a fixed balance or cap. Every accepted activity creates another claim and immediately increments points, Home carbon totals, history, and weekly earned points. Recycling points and avoided impact scale with accepted item count.
-- Remote verification: Chromium desktop and Pixel 7, 2/2 passed, with zero `/api` requests
+- Remote verification: one-of-each, repeated accumulation, and responsive-gate coverage passed on Chromium desktop and Pixel 7. One initial Pixel one-of-each run rendered a blank transient frame; the parallel repeated-activity Pixel test passed and the exact failed case passed on focused retry.
 
 ## Constraints
 - Do not use the PPT as a page-layout or typography template.
