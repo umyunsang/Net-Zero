@@ -14,6 +14,29 @@ test("public presentation demo completes points, voucher, and leaderboard flow w
   await page.getByRole("button", { name: /ขึ้นรถโดยสาร/ }).first().click();
   await page.getByRole("button", { name: "เริ่มบันทึกการเดินทาง" }).click();
   await expect(page.getByText("+3 คะแนน", { exact: true })).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByRole("heading", { name: "เพราะคุณ ธรรมชาติจึงเติบโต" })).toBeVisible();
+  const successCity = page.locator(".success-city-stage .city-motif");
+  await expect(successCity.locator("canvas")).toBeVisible();
+  const successCityMetrics = await successCity.evaluate((element) => {
+    const bounds = element.getBoundingClientRect();
+    const screen = element.closest<HTMLElement>(".success-screen")?.getBoundingClientRect();
+    const main = element.closest<HTMLElement>(".consumer-main")?.getBoundingClientRect();
+    return {
+      centerDelta: screen ? Math.abs(bounds.left + bounds.width / 2 - (screen.left + screen.width / 2)) : Number.POSITIVE_INFINITY,
+      screenCenterDelta: screen && main ? Math.abs(screen.left + screen.width / 2 - (main.left + main.width / 2)) : Number.POSITIVE_INFINITY,
+      width: bounds.width,
+      height: bounds.height,
+      overflow: document.documentElement.scrollWidth - window.innerWidth,
+    };
+  });
+  expect(successCityMetrics.centerDelta).toBeLessThanOrEqual(1);
+  expect(successCityMetrics.screenCenterDelta).toBeLessThanOrEqual(1);
+  expect(successCityMetrics.width).toBeGreaterThanOrEqual(280);
+  expect(successCityMetrics.height).toBeGreaterThanOrEqual(149);
+  expect(successCityMetrics.overflow).toBe(0);
+  await successCity.locator("canvas").click();
+  await expect(successCity).toHaveAttribute("data-replaying", "true");
+  await expect(successCity).toHaveAttribute("data-replaying", "false", { timeout: 2_000 });
 
   await page.getByRole("navigation").getByRole("button", { name: "ทำกิจกรรม", exact: true }).click();
   await page.getByRole("button", { name: /ส่งรีไซเคิล/ }).first().click();

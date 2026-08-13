@@ -432,11 +432,28 @@ function ActivityCapture({ activity, onBack, onHistory }: { activity: Activity; 
     const verified = completion?.status === "verified";
     const awardedPoints = completion?.awardedPoints ?? 0;
     return (
-      <div className="success-screen" aria-live="polite">
+      <div className={`success-screen${verified ? " is-verified" : ""}`} aria-live="polite">
         <InkBurst />
-        <div className="success-icon"><Icon name="check" /></div>
-        <h1>{t(verified ? "สำเร็จแล้ว" : "ส่งแล้ว")}</h1>
-        <p>{verified ? awardedPoints > 0 ? t("+{count} คะแนน", { count: awardedPoints }) : t("ยืนยันแล้ว") : t("รอตรวจสอบ")}</p>
+        {verified ? (
+          <>
+            <div className="success-city-stage">
+              <Suspense fallback={<span className="success-city-loading" />}>
+                <CityCanvas points={awardedPoints} fallback="empty" />
+              </Suspense>
+            </div>
+            <div className="success-copy">
+              <span className="success-status"><Icon name="check" />{t("สำเร็จแล้ว")}</span>
+              <h1>{t("เพราะคุณ ธรรมชาติจึงเติบโต")}</h1>
+              <p className="success-points">{awardedPoints > 0 ? t("+{count} คะแนน", { count: awardedPoints }) : t("ยืนยันแล้ว")}</p>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="success-icon"><Icon name="check" /></div>
+            <h1>{t("ส่งแล้ว")}</h1>
+            <p className="success-points">{t("รอตรวจสอบ")}</p>
+          </>
+        )}
         <button className="primary-button" onClick={onHistory}>{t("ดูประวัติกิจกรรม")}</button>
         <button className="text-button" onClick={onBack}>{t("กลับไปทำกิจกรรม")}</button>
       </div>

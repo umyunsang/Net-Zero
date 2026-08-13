@@ -62,7 +62,9 @@ test("ฟิกซ์เจอร์สังเคราะห์ไม่เ�
   await expect(page.getByText("พร้อมส่ง")).toBeVisible();
   await page.getByRole("spinbutton", { name: "จำนวนชิ้น" }).fill("46");
   await page.getByRole("button", { name: "ส่งรีไซเคิล" }).click();
-  await expect(page.getByRole("heading", { name: "สำเร็จแล้ว" })).toBeVisible();
+  await expect(page.getByText("สำเร็จแล้ว", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "เพราะคุณ ธรรมชาติจึงเติบโต" })).toBeVisible();
+  await expect(page.locator(".success-city-stage canvas")).toBeVisible();
   await expect(page.getByText("+20 คะแนน")).toBeVisible();
   await expect.poll(() => evidenceInits.length).toBe(1);
   expect(evidenceInits[0]).toMatchObject({ kind: "photo", mimeType: "image/jpeg", sizeBytes: 156, fixtureId: "FIXTURE-BKK-20260812-01", capture: { capturedAt: "2026-08-12T00:00:00.000Z", camera: { make: "ผู้ให้บริการฟิกซ์เจอร์สังเคราะห์", model: "FIXTURE-BKK-20260812-01-RECYCLING" } } });
@@ -73,7 +75,9 @@ test("ฟิกซ์เจอร์สังเคราะห์ไม่เ�
   await expect(page.getByText("กำลังบันทึก · ประมาณ 3 วินาที")).toBeVisible();
   await page.clock.runFor(2_400);
   await expect.poll(() => busRequests.length).toBe(1);
-  await expect(page.getByRole("heading", { name: "สำเร็จแล้ว" })).toBeVisible();
+  await expect(page.getByText("สำเร็จแล้ว", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "เพราะคุณ ธรรมชาติจึงเติบโต" })).toBeVisible();
+  await expect(page.locator(".success-city-stage canvas")).toBeVisible();
   await expect(page.getByText("+3 คะแนน")).toBeVisible();
   expect(busRequests[0]?.routeName).toBe("DEMO-BUS-01");
   expect(busRequests[0]!.samples).toHaveLength(7);
