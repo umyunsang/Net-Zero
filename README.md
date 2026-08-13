@@ -1,18 +1,53 @@
-# Net-Zero Thailand
+<div align="center">
+  <img src="./docs/assets/wordmark.svg" width="360" alt="Net-Zero Thailand" />
+</div>
+<br/>
 
-MVP แบบ **ข้อมูลจำลอง (mock/synthetic) — สำหรับเดโมเท่านั้น** เพื่อสาธิตการบันทึกกิจกรรม การตรวจสถานะ การคำนวณ การลงบัญชีคะแนน voucher และแดชบอร์ดผ่าน API, state machines, PostgreSQL transactions, calculation, ledger, idempotency, RBAC และตรรกะ voucher จริง
+# 🌱 Net-Zero Thailand
 
-CO2e ที่แสดงเป็น **ค่าประมาณ CO2e ที่อ้างอิงปัจจัย/ระเบียบวิธีของ TGO แบบมีเวอร์ชัน** โดยปัจจัยเป็นเพียง source-referenced candidates และ mock approval มีขอบเขต `mock_demo` สำหรับเดโมเท่านั้น ไม่ใช่การรับรองหรือการสนับสนุนจาก TGO, carbon credit หรือ offset ทั้งไม่มีการกล่าวอ้างว่าป้องกันการทุจริตได้หรือพิสูจน์ว่าเกิดกิจกรรมจริง
+[![Node.js](https://img.shields.io/badge/Node.js-24-339933?logo=node.js&logoColor=white)](https://nodejs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![React](https://img.shields.io/badge/React-Vite_PWA-61DAFB?logo=react&logoColor=white)](https://react.dev)
+[![NestJS](https://img.shields.io/badge/NestJS-Fastify-E0234E?logo=nestjs&logoColor=white)](https://nestjs.com)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17_%2F_PostGIS-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org)
+[![pnpm](https://img.shields.io/badge/pnpm-workspace-F69220?logo=pnpm&logoColor=white)](https://pnpm.io)
 
-## เทคโนโลยีที่ใช้
+Net-Zero Thailand is an MVP platform that lets users log everyday low-carbon activities — taking the bus, recycling, and planting trees — and rewards them with voucher points, backed by a real API, state machines, PostgreSQL transactions, an idempotent ledger, RBAC, and full-stack calculation logic.
+
+> **Note:** All data, identities, and provider integrations in this repository are **mock/synthetic — for demo purposes only**. See [Disclaimer](#️-disclaimer) below for the full scope.
+
+## 🌟 Key Features
+
+- **Activity logging** — Submit bus, recycling, and tree-planting activities with photo/GPS evidence via a responsive PWA
+- **Review workflow** — Reviewer role checks submitted evidence through a real state machine before approval
+- **CO2e calculation** — Versioned, source-referenced factor catalog with a fail-closed resolver (no factor/approval → no CO2e or points)
+- **Voucher ledger** — Idempotent, transactional point accounting redeemable at demo merchants
+- **Role-based access** — JWT auth with `user`, `reviewer`, `merchant`, and `admin` roles
+- **Dashboards** — Consumer and operations views for tracking activity, points, and review status
+
+## Tech Stack
 
 - Node.js 24, TypeScript, pnpm
-- React/Vite PWA แบบ responsive
-- NestJS/Fastify แบบ modular monolith
-- PostgreSQL 17/PostGIS และ Graphile Worker
-- ที่เก็บวัตถุส่วนตัวที่เข้ากันได้กับ S3; ใช้ MinIO สำหรับการพัฒนาในเครื่อง
+- Responsive React/Vite PWA
+- Modular monolith NestJS/Fastify
+- PostgreSQL 17/PostGIS and Graphile Worker
+- S3-compatible object storage; MinIO for local development
 
-## การตั้งค่าและรีเซ็ตเดโม
+## Project Structure
+
+```
+apps/
+  api/       # NestJS/Fastify backend — auth, claims, evidence, rewards, community
+  web/       # React/Vite PWA — consumer and operations UI
+  worker/    # Graphile Worker background jobs
+packages/
+  domain/    # Core calculation logic (bus, carbon, claims, rewards)
+  contracts/ # Shared API contracts/types
+seed/        # Demo fixtures and approved factor data
+migrations/  # Database migrations
+```
+
+## Getting Started
 
 ```sh
 cp .env.example .env
@@ -23,16 +58,16 @@ pnpm demo:reset
 pnpm dev
 ```
 
-หน้าเว็บ: `http://localhost:5173`
-สถานะเชิงปฏิบัติการของ API: `http://localhost:3000/health/ready` (ไม่ใช่ production-readiness gate)
+Web app: `http://localhost:5173`
+API operational status: `http://localhost:3000/health/ready` (not a production-readiness gate)
 
-`pnpm demo:reset` รีเซ็ตข้อมูลแบบ deterministic และสร้างผลการทบทวน fixture สำหรับ `bus`, `recycling`, `tree` ใน scope `mock_demo` โดยไม่ต้องมีบุคคล อุปกรณ์จริง หรือผู้ให้บริการภายนอก
+`pnpm demo:reset` deterministically resets data and creates review fixtures for `bus`, `recycling`, and `tree` under the `mock_demo` scope without requiring real people, devices, or external providers.
 
-คำสั่งข้อมูลเดโมปฏิเสธการทำงาน เว้นแต่ `MOCK_DEMO_ENABLED=true`, resource scopes ทั้งสองเป็น `mock_demo`, URL ฐานข้อมูล/object storage/web เป็น loopback และฐานข้อมูลมี persistent `mock_demo` marker ที่ตรงกัน `demo:reset` สร้าง marker ได้เฉพาะฐานใหม่ที่ business tables ทุกตารางว่าง ส่วน `db:seed-demo` ไม่สามารถสร้าง marker เองได้
+Demo data commands are rejected unless `MOCK_DEMO_ENABLED=true`. Both resource scopes are `mock_demo`, the database/object storage/web URLs are loopback addresses, and the database contains a matching persistent `mock_demo` marker. `demo:reset` creates the marker only for a newly created database when all business tables are empty. `db:seed-demo` cannot create the marker itself.
 
-บัญชีเดโมใช้ JWT และบทบาท `user`, `reviewer`, `merchant`, `admin` ตาม RBAC จริง ข้อมูล ตัวตน หลักฐาน เวลา ตำแหน่ง และคำตอบจาก provider ทั้งหมดเป็น mock/synthetic/demo-only ไม่มีการเชื่อมต่อ TGO, ระบบขนส่ง, AI, OIDC, ร้านค้า, payment หรือ partner จริง และไม่มีการ deploy หรือกล่าวอ้างความพร้อมใช้งานใน production
+The demo accounts use JWTs and real RBAC roles: `user`, `reviewer`, `merchant`, and `admin`.
 
-โทเค็น QR สำหรับเดโมใช้ได้ครั้งเดียว:
+Single-use demo QR tokens:
 
 ```text
 DEMO-BIN-BKK-01:TOKEN-0001
@@ -40,23 +75,23 @@ DEMO-BIN-BKK-01:TOKEN-0002
 DEMO-BIN-BKK-01:TOKEN-0003
 ```
 
-## ขอบเขตความพร้อม
+## Testing & Readiness
 
-### Mock-demo readiness — คาดว่าผ่าน
+### Mock-demo readiness — expected to pass
 
 ```sh
 TEST_DATABASE_URL=postgres://netzero:netzero@localhost:5432/netzero_test pnpm evidence:write
 ```
 
-atomic verification รัน complete three-flow API test, typecheck/build/full tests/database-from-empty/E2E และ readiness ใน source เดียวกัน `pnpm db:demo-readiness` ปฏิเสธการรันเดี่ยวเพื่อไม่ให้ marker/factor-only state ถูกอ้างว่าเป็น readiness ผ่าน
+An atomic verification runs the complete three-flow API test, typecheck, build, full tests, database-from-empty checks, E2E validation, and readiness checks in the same source. `pnpm db:demo-readiness` is intentionally not runnable in isolation to prevent a marker/factor-only state from being misrepresented as readiness.
 
-### Production readiness — คาดว่าล้มเหลวแบบ fail-closed
+### Production readiness — expected to fail closed
 
-รัน `pnpm db:production-readiness` เป็น negative check และคาดหวัง exit code ที่ไม่เป็นศูนย์ เพราะไม่มี human factor approval, physical-device evidence, production deployment หรือ real partner integration ห้ามใช้ผล mock-demo readiness เป็นหลักฐานแทน production readiness
+Run `pnpm db:production-readiness` as a negative check and expect a non-zero exit code because there is no human factor approval, no physical-device evidence, no production deployment, and no real partner integration. Mock-demo readiness results must not be used as evidence for production readiness.
 
-Browser หรือ Pixel emulation ใช้ fixture เส้นทาง GPS สังเคราะห์ที่ช่วงเวลา 30 วินาทีเท่านั้น โดยไม่เรียก GPS/กล้องของอุปกรณ์ ไม่ใช่หลักฐานจากอุปกรณ์จริง และไม่ได้อ้างว่า physical-device ผ่าน
+The browser or Pixel emulation uses synthetic GPS route fixtures over a 30-second window only. It does not call the device GPS/camera, is not evidence from a real device, and does not claim that a physical device passed.
 
-## การตรวจสอบเต็มชุดตามสัญญา
+### Full Contract Verification
 
 ```sh
 pnpm typecheck
@@ -66,8 +101,12 @@ TEST_DATABASE_URL=postgres://netzero:netzero@localhost:5432/netzero pnpm db:test
 pnpm test:e2e
 ```
 
-รายการข้างต้นเป็นคำสั่งตรวจสอบที่คาดหวังตามสัญญา ไม่ใช่คำยืนยันว่าเอกสารนี้ได้รันหรือผ่านแล้ว
+The commands above are the expected verification steps under contract. They are not confirmation that this document has already been run or passed.
 
-## ข้อจำกัดของผลลัพธ์
+## Disclaimer
 
-แค็ตตาล็อกปัจจัยและ resolver ทำงานแบบ fail-closed: หาก scope, ป้ายกำกับ, provenance หรือ approval ไม่ครบ ระบบต้องไม่สร้าง CO2e หรือคะแนน ผลรถโดยสารเป็นฮิวริสติกของ MVP; หลักฐานรีไซเคิลหมายถึงหลักฐานการนำวัสดุมาส่ง ไม่ยืนยันว่ารีไซเคิลสำเร็จ; ผลต้นไม้คือค่าการกักเก็บที่คาดการณ์ไว้หนึ่งปี ไม่ยืนยันว่าต้นไม้จะอยู่รอด
+The CO2e displayed is an **estimated CO2e value derived from TGO factors/methods with versioning**. The factors are only source-referenced candidate data, and mock approval is limited to the `mock_demo` scope for demo purposes only. This is not certification, endorsement, or support from TGO, carbon credits, or offsets. It does not claim fraud prevention or proof that a real activity occurred.
+
+Identity data, evidence, timestamps, locations, and provider responses are all mock/synthetic/demo-only. There is no real connection to TGO, transport systems, AI, OIDC, stores, payments, or partner systems, and there is no deployment or claim of production readiness.
+
+The factor catalog and resolver operate in fail-closed mode: if scope, labeling, provenance, or approval is incomplete, the system must not create CO2e or score values. Bus results are a heuristic of the MVP; recycling evidence refers to proof of material delivery, not proof that recycling succeeded; tree results are expected one-year sequestration estimates, not proof that the tree will survive.
