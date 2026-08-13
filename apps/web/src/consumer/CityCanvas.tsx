@@ -264,7 +264,7 @@ export function CityCanvas({ points, fallback = "skyline", growthMode = "ambient
       }
       if (replaying && structures.every((structure) => structure.bornAt === 0)) {
         replaying = false;
-        if (host) host.dataset.replaying = "false";
+        host!.dataset.replaying = "false";
       }
       renderer.render(scene, camera);
       raf = requestAnimationFrame(frame);
