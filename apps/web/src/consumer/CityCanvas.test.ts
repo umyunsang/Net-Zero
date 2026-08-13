@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { structureBudget } from "./CityCanvas";
+import { estimateCarbonImpact, structureBudget } from "./cityGrowth";
 
 describe("earned Fable city progression", () => {
   it("starts as a flat plot and adds nature before a denser city", () => {
@@ -12,5 +12,11 @@ describe("earned Fable city progression", () => {
 
   it("keeps the ambient cover city populated at zero points", () => {
     expect(structureBudget(0)).toEqual({ buildings: 5, trees: 4 });
+  });
+
+  it("derives a deterministic mock carbon-impact estimate from weekly points", () => {
+    expect(estimateCarbonImpact(0)).toBe(0);
+    expect(estimateCarbonImpact(38)).toBe(5.7);
+    expect(estimateCarbonImpact(75)).toBe(11.25);
   });
 });

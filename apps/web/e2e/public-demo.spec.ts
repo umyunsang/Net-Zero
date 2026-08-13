@@ -113,6 +113,10 @@ test("public presentation demo completes points, voucher, and leaderboard flow w
   await expect(leaderboardCity).toHaveAttribute("data-points", "38");
   await expect(leaderboardCity).toHaveAttribute("data-buildings", "9");
   await expect(leaderboardCity).toHaveAttribute("data-trees", "12");
+  await expect(page.locator(".full-list .leaderboard-entry-button")).toHaveCount(9);
+  await page.getByRole("button", { name: "เลือก ใบไม้ยามเช้า เพื่อดูโปรไฟล์ประจำสัปดาห์" }).click();
+  await expect(page.locator(".leaderboard-participation")).toHaveAttribute("data-selected-profile", "ใบไม้ยามเช้า");
+  await expect(page.locator(".leaderboard-city .city-motif")).toHaveAttribute("data-points", "75");
 
   expect(apiRequests).toEqual([]);
 });

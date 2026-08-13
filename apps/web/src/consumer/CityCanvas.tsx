@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { CitySkyline, prefersReducedMotion, seeded } from "./motion";
+import { structureBudget, type CityGrowthMode } from "./cityGrowth";
 
 const INK = 0x146447;
 const PAPER = 0xffffff;
@@ -8,7 +9,6 @@ const FOREST = 0x146447;
 const TERRACOTTA = 0xe77800;
 
 type Structure = { mesh: THREE.Object3D; bornAt: number };
-export type CityGrowthMode = "ambient" | "earned";
 
 function makeBlock(width: number, height: number, depth: number, fill: number, line: number): THREE.Object3D {
   const group = new THREE.Group();
@@ -48,20 +48,6 @@ function cellPosition(order: number): [number, number] {
     }
   }
   return cells[order % cells.length] ?? [0, 0];
-}
-
-export function structureBudget(points: number, growthMode: CityGrowthMode = "ambient"): { buildings: number; trees: number } {
-  const earnedPoints = Math.max(0, Math.floor(points));
-  if (growthMode === "earned") {
-    return {
-      buildings: Math.min(Math.floor(earnedPoints / 4), 20),
-      trees: earnedPoints === 0 ? 0 : Math.min(Math.max(1, Math.floor(earnedPoints / 3)), 24),
-    };
-  }
-  return {
-    buildings: Math.min(5 + Math.floor(earnedPoints / 10), 22),
-    trees: Math.min(4 + Math.floor(earnedPoints / 8), 26),
-  };
 }
 
 /**

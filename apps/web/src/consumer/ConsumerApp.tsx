@@ -28,6 +28,7 @@ import { IS_PUBLIC_PRESENTATION_DEMO } from "../public-demo";
 import { formatCarbonTotal, formatCarbonValue, getPrimaryImpact } from "../carbon-impact";
 import { ActivityIcon, BrandMark, Icon, Notice, ThaiForm } from "../ui";
 import { CitySkyline, InkBurst, useCountUp } from "./motion";
+import { estimateCarbonImpact, structureBudget } from "./cityGrowth";
 
 /* three.js stays out of the entry chunk; the skyline covers load and no-WebGL */
 const CityCanvas = lazy(() => import("./CityCanvas").then((module) => ({ default: module.CityCanvas })));
@@ -748,9 +749,11 @@ function LeaderboardScreen({ onBack }: { onBack: () => void }) {
   const { t, locale } = useI18n();
   const [data, setData] = useState<LeaderboardData>();
   const [optedIn, setOptedIn] = useState(false);
+  const [selectedPseudonym, setSelectedPseudonym] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState("");
+  const profileCardRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     api<unknown>("/leaderboard/weekly")
@@ -766,6 +769,7 @@ function LeaderboardScreen({ onBack }: { onBack: () => void }) {
     try {
       const consent = parseLeaderboardConsent(await api<unknown>("/leaderboard/consent", "PUT", { optedIn: next }));
       setOptedIn(consent.opted_in);
+      setSelectedPseudonym(consent.opted_in ? consent.pseudonym_th : null);
       setData((current) => current && ({
         ...current,
         viewer: consent,
@@ -790,9 +794,21 @@ function LeaderboardScreen({ onBack }: { onBack: () => void }) {
   const heading = <PageHeader title={t("อันดับประจำสัปดาห์")} subtitle={t("เปรียบเทียบคะแนนกับชื่อเล่นของสมาชิกในชุมชน")} onBack={onBack} />;
 
   if (!data) return <div className="leaderboard-screen">{heading}<div className="screen-state"><Notice state={error ? "error" : "loading"} error={error} /></div></div>;
-  const viewerPoints = data.viewer.pseudonym_th
-    ? data.entries.find((entry) => entry.pseudonym_th === data.viewer.pseudonym_th)?.weekly_points ?? 0
-    : 0;
+  const viewerEntry = data.viewer.pseudonym_th
+    ? data.entries.find((entry) => entry.pseudonym_th === data.viewer.pseudonym_th)
+    : undefined;
+  const selectedEntry = data.entries.find((entry) => entry.pseudonym_th === selectedPseudonym) ?? viewerEntry ?? data.entries[0];
+  const selectedIsViewer = selectedEntry?.pseudonym_th === data.viewer.pseudonym_th;
+  const selectedGrowth = structureBudget(selectedEntry?.weekly_points ?? 0, "earned");
+  const selectedImpact = estimateCarbonImpact(selectedEntry?.weekly_points ?? 0).toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  function selectEntry(pseudonym: string) {
+    setSelectedPseudonym(pseudonym);
+    setConfirming(false);
+    if (window.matchMedia("(max-width: 1023px)").matches) {
+      window.requestAnimationFrame(() => profileCardRef.current?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }));
+    }
+  }
 
   return (
     <div className="leaderboard-screen">
@@ -809,22 +825,35 @@ function LeaderboardScreen({ onBack }: { onBack: () => void }) {
           <ol className="leaderboard-list full-list">
             {data.entries.map((entry) => {
               const isViewer = entry.pseudonym_th === data.viewer.pseudonym_th;
-              return <li className={`${entry.rank <= 3 ? "is-top " : ""}${isViewer ? "is-viewer" : ""}`} aria-current={isViewer ? "true" : undefined} key={`${entry.rank}-${entry.pseudonym_th}`}>
-                <span className="leaderboard-rank">{entry.rank}</span>
-                <span className="leaderboard-avatar" aria-hidden="true">{leaderboardInitials(entry.pseudonym_th)}</span>
-                <strong>{entry.pseudonym_th}{isViewer && <small>{t("คุณ")}</small>}</strong>
-                <em>{entry.weekly_points} <small>{t("คะแนน")}</small></em>
+              const isSelected = entry.pseudonym_th === selectedEntry?.pseudonym_th;
+              return <li className={`${entry.rank <= 3 ? "is-top " : ""}${isViewer ? "is-viewer " : ""}${isSelected ? "is-selected" : ""}`} aria-current={isViewer ? "true" : undefined} key={`${entry.rank}-${entry.pseudonym_th}`}>
+                <button className="leaderboard-entry-button" type="button" aria-pressed={isSelected} aria-label={t("เลือก {name} เพื่อดูโปรไฟล์ประจำสัปดาห์", { name: entry.pseudonym_th })} onClick={() => selectEntry(entry.pseudonym_th)}>
+                  <span className="leaderboard-rank">{entry.rank}</span>
+                  <span className="leaderboard-avatar" aria-hidden="true">{leaderboardInitials(entry.pseudonym_th)}</span>
+                  <strong>{entry.pseudonym_th}{isViewer && <small>{t("คุณ")}</small>}</strong>
+                  <em>{entry.weekly_points} <small>{t("คะแนน")}</small></em>
+                </button>
               </li>;
             })}
           </ol>
         </section>
-        <aside className="leaderboard-participation">
+        <aside className="leaderboard-participation" ref={profileCardRef} data-selected-profile={selectedEntry?.pseudonym_th}>
           <div className="leaderboard-city" aria-hidden="true">
-            <Suspense fallback={null}><CityCanvas points={viewerPoints} fallback="empty" growthMode="earned" /></Suspense>
+            <Suspense fallback={null}><CityCanvas key={`${selectedEntry?.pseudonym_th}-${selectedEntry?.weekly_points}`} points={selectedEntry?.weekly_points ?? 0} fallback="empty" growthMode="earned" /></Suspense>
           </div>
-          <span className="leaderboard-profile-mark" aria-hidden="true">LR</span>
-          <h2>{t("การเข้าร่วมของคุณ")}</h2>
-          <p><strong>LotusRider</strong><br />{t("แสดงเฉพาะชื่อเล่นและคะแนนประจำสัปดาห์")}</p>
+          <div className="leaderboard-profile-heading">
+            <span className="leaderboard-profile-mark" aria-hidden="true">{leaderboardInitials(selectedEntry?.pseudonym_th ?? "LR")}</span>
+            <div><small>{t("โปรไฟล์ประจำสัปดาห์")}</small><h2>{selectedEntry?.pseudonym_th}</h2><p>{t("อันดับ {rank} · {points} คะแนน", { rank: selectedEntry?.rank ?? "–", points: selectedEntry?.weekly_points ?? 0 })}{selectedIsViewer && <strong>{t("คุณ")}</strong>}</p></div>
+          </div>
+          <dl className="leaderboard-impact-grid">
+            <div><dt>{t("คะแนน")}</dt><dd>{selectedEntry?.weekly_points ?? 0}</dd></div>
+            <div><dt>{t("อาคาร")}</dt><dd>{selectedGrowth.buildings}</dd></div>
+            <div><dt>{t("ต้นไม้")}</dt><dd>{selectedGrowth.trees}</dd></div>
+            <div><dt>{t("ผลกระทบคาร์บอนโดยประมาณ")}</dt><dd>{selectedImpact} <small>kg CO₂e</small></dd></div>
+          </dl>
+          <p className="leaderboard-impact-note">{t("ค่าประมาณจากคะแนนกิจกรรมประจำสัปดาห์สำหรับเดโม ไม่ใช่คาร์บอนเครดิต")}</p>
+          {(selectedIsViewer || !optedIn) && <div className="leaderboard-consent-panel">
+          {!selectedIsViewer && <strong>{t("การเข้าร่วมของคุณ")}</strong>}
           <span className={`leaderboard-status${optedIn ? " is-active" : ""}`}><Icon name={optedIn ? "check" : "profile"} />{t(optedIn ? "เข้าร่วมแล้ว" : "ไม่ได้เข้าร่วม")}</span>
           {confirming ? (
             <div className="leaderboard-confirm" role="group" aria-label={t("ออกจากอันดับประจำสัปดาห์?")}>
@@ -837,6 +866,7 @@ function LeaderboardScreen({ onBack }: { onBack: () => void }) {
           ) : (
             <button className="primary-button leaderboard-participation-action" type="button" disabled={saving} onClick={() => void updateConsent(true)}>{t(saving ? "กำลังบันทึก…" : "เข้าร่วมอีกครั้ง")}</button>
           )}
+          </div>}
         </aside>
       </div>
     </div>
