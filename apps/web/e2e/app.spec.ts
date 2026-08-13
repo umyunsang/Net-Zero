@@ -158,19 +158,73 @@ test("header language control switches Thai, English, and Korean immediately and
   await mockApi(page, { dashboardPoints: 0 });
   await page.goto("/");
   await expect(page.getByLabel("Net Zero")).toHaveText("Net Zero");
-  const language = page.getByRole("combobox", { name: "ภาษา" });
-  await language.selectOption("en");
+  const languageTrigger = page.getByRole("button", { name: "ภาษา" });
+  await expect(page.getByRole("combobox", { name: "ภาษา" })).toHaveCount(0);
+  const triggerBox = await languageTrigger.boundingBox();
+  expect(triggerBox?.width).toBeLessThanOrEqual(52);
+  expect(triggerBox?.height).toBeLessThanOrEqual(36);
+  await languageTrigger.click();
+  await page.getByRole("menuitemradio", { name: "EN" }).click();
   await expect(page.getByLabel("Net Zero")).toHaveText("Net Zero");
   await expect(page.getByRole("heading", { name: "Cut carbon. Earn points." })).toBeVisible();
   await page.getByRole("button", { name: "Get started" }).click();
   await expect(page.getByRole("navigation").getByRole("button")).toHaveText(["Home", "Activities", "Wallet", "Me"]);
-  await page.getByRole("combobox", { name: "Language" }).selectOption("ko");
+  await page.getByRole("button", { name: "Language" }).click();
+  await page.getByRole("menuitemradio", { name: "한국어" }).click();
   await expect(page.getByLabel("Net Zero")).toHaveText("Net Zero");
   await expect(page.getByRole("heading", { name: "첫 활동을 시작하세요" })).toBeVisible();
   await expect(page.getByRole("navigation").getByRole("button")).toHaveText(["홈", "활동", "지갑", "내 정보"]);
   await page.reload();
   await expect(page.getByLabel("Net Zero")).toHaveText("Net Zero");
   await expect(page.getByRole("heading", { name: "탄소를 줄이고 포인트를 받으세요" })).toBeVisible();
+});
+
+test("1024px home keeps the score hierarchy readable beside the secondary column", async ({ page }) => {
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await mockApi(page, { dashboardPoints: 0 });
+  await login(page, "ผู้ใช้งาน");
+  await expect(page.getByLabel("คะแนนของคุณ")).toBeVisible();
+  const layout = await page.evaluate(() => {
+    const copy = document.querySelector<HTMLElement>(".balance-copy");
+    const hero = document.querySelector<HTMLElement>(".home-hero");
+    const secondary = document.querySelector<HTMLElement>(".home-secondary-grid");
+    return {
+      copyWidth: copy?.getBoundingClientRect().width ?? 0,
+      heroWidth: hero?.getBoundingClientRect().width ?? 0,
+      secondaryWidth: secondary?.getBoundingClientRect().width ?? 0,
+      overflow: document.documentElement.scrollWidth - window.innerWidth,
+    };
+  });
+  expect(layout.copyWidth).toBeGreaterThanOrEqual(110);
+  expect(layout.heroWidth).toBeGreaterThanOrEqual(420);
+  expect(layout.secondaryWidth).toBeGreaterThanOrEqual(280);
+  expect(layout.overflow).toBe(0);
+});
+
+test("activity hub retains all three Fable scenes without horizontal overflow", async ({ page }) => {
+  await mockApi(page, { dashboardPoints: 0 });
+  await login(page, "ผู้ใช้งาน");
+  await page.getByRole("button", { name: "ทำกิจกรรม", exact: true }).click();
+  const scenes = page.locator(".activity-scene");
+  await expect(scenes).toHaveCount(3);
+  const sceneSizes = await scenes.evaluateAll((items) => items.map((item) => {
+    const rect = item.getBoundingClientRect();
+    return { width: rect.width, height: rect.height };
+  }));
+  for (const scene of sceneSizes) {
+    expect(scene.width).toBeGreaterThan(280);
+    expect(scene.height).toBeGreaterThanOrEqual(80);
+  }
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBe(0);
+});
+
+test("home activity cards use the same three Fable illustrations as the activity hub", async ({ page }) => {
+  await mockApi(page, { dashboardPoints: 0 });
+  await login(page, "ผู้ใช้งาน");
+  const homeScenes = page.locator(".activity-list .activity-scene");
+  await expect(homeScenes).toHaveCount(3);
+  await expect(homeScenes).toHaveClass([/bus/, /recycling/, /tree/]);
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBe(0);
 });
 
 test("consumer home hides internal requirements while keeping the three earn paths visible", async ({ page }) => {
@@ -194,7 +248,8 @@ test("0-point wallet locks rewards contextually without a presentation explainer
   await expect(page.getByRole("button", { name: "แลกรางวัล", exact: true })).toHaveCount(0);
   await expect(page.getByText("คะแนนจะถูกใช้เมื่อออกบัตรสำเร็จ")).toBeVisible();
   await expect(page.getByText("คะแนนเชื่อมกับบัตรอย่างไร")).toHaveCount(0);
-  await page.getByRole("combobox", { name: "ภาษา" }).selectOption("ko");
+  await page.getByRole("button", { name: "ภาษา" }).click();
+  await page.getByRole("menuitemradio", { name: "한국어" }).click();
   const firstReward = page.locator(".reward-card").first();
   await expect(firstReward.getByRole("heading", { name: "상품 20바트 할인" })).toBeVisible();
   const rewardLayout = await firstReward.evaluate((card) => {
