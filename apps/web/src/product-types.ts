@@ -14,6 +14,12 @@ export type GpsSample = {
 export type Impact = {
   kg_co2e: string;
   impact_type: "avoided" | "projected_sequestration";
+  display_unit?: "kg_co2" | "kg_co2e";
+  horizon_years?: number;
+  method_id?: string;
+  method_version?: string;
+  source_url?: string;
+  disclosure_key?: Activity;
 };
 
 export type Claim = {

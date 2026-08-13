@@ -1,13 +1,14 @@
 import type { Activity, Claim, DashboardData, LeaderboardData, Reward, Role, Voucher } from "./product-types";
+import { calculateBusImpact, calculatePetImpact, calculateTreeImpact, routeDistanceKm } from "./carbon-impact";
 
 export const IS_PUBLIC_PRESENTATION_DEMO = import.meta.env.VITE_PUBLIC_DEMO === "true";
 
-const STORAGE_KEY = "net-zero-public-presentation-demo-v1";
+const STORAGE_KEY = "net-zero-public-presentation-demo-v2";
 const VIEWER_NAME = "ผู้ใช้-ใบไม้-1001";
 
 type DemoVoucher = Voucher & { issuedAt: string };
 type DemoState = {
-  version: 1;
+  version: 2;
   points: number;
   weeklyPoints: number;
   claims: Claim[];
@@ -35,7 +36,7 @@ const communityEntries = [
 
 function initialState(): DemoState {
   return {
-    version: 1,
+    version: 2,
     points: 0,
     weeklyPoints: 0,
     claims: [],
@@ -49,7 +50,7 @@ function initialState(): DemoState {
 function readState(): DemoState {
   try {
     const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null") as Partial<DemoState> | null;
-    if (parsed?.version === 1 && Number.isInteger(parsed.points) && Number.isInteger(parsed.weeklyPoints) && Array.isArray(parsed.claims) && Array.isArray(parsed.vouchers)) {
+    if (parsed?.version === 2 && Number.isInteger(parsed.points) && Number.isInteger(parsed.weeklyPoints) && Array.isArray(parsed.claims) && Array.isArray(parsed.vouchers)) {
       return { ...initialState(), ...parsed } as DemoState;
     }
   } catch {
@@ -69,10 +70,14 @@ export class PublicDemoApiError extends Error {
   }
 }
 
-function createClaim(activity: Activity, awardedPoints: number, evidenceIds: string[]): Claim {
+function createClaim(activity: Activity, awardedPoints: number, evidenceIds: string[], body: unknown): Claim {
   const now = new Date().toISOString();
-  const impactType = activity === "tree" ? "projected_sequestration" : "avoided";
-  const impactValue = activity === "bus" ? "0.30" : activity === "tree" ? "3.00" : "2.50";
+  const payload = body as { samples?: unknown; itemCount?: unknown; material?: unknown; quantity?: unknown } | null;
+  const impact = activity === "bus"
+    ? calculateBusImpact(routeDistanceKm(Array.isArray(payload?.samples) ? payload.samples as [] : []))
+    : activity === "recycling"
+      ? calculatePetImpact(Number(payload?.itemCount), String(payload?.material ?? ""), true)
+      : calculateTreeImpact(Number(payload?.quantity ?? 1), true, true);
   return {
     claim: {
       id: crypto.randomUUID(),
@@ -88,7 +93,7 @@ function createClaim(activity: Activity, awardedPoints: number, evidenceIds: str
       submitted_at: now,
       decided_at: now,
       awarded_points: awardedPoints,
-      impacts: [{ kg_co2e: impactValue, impact_type: impactType }],
+      impacts: impact ? [impact] : [],
       evidence_ids: evidenceIds,
     },
   };
@@ -194,7 +199,7 @@ export async function publicDemoApi<T>(path: string, method = "GET", body?: unkn
     const evidenceIds = Array.isArray((body as { evidenceIds?: unknown } | null)?.evidenceIds)
       ? (body as { evidenceIds: string[] }).evidenceIds
       : [];
-    const item = createClaim(activity, awardedPoints, evidenceIds);
+    const item = createClaim(activity, awardedPoints, evidenceIds, body);
     state.points += awardedPoints;
     state.weeklyPoints += awardedPoints;
     state.claims.unshift(item);

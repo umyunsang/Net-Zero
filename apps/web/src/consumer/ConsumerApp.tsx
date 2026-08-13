@@ -25,6 +25,7 @@ import type {
   Voucher,
 } from "../product-types";
 import { IS_PUBLIC_PRESENTATION_DEMO } from "../public-demo";
+import { formatCarbonTotal, formatCarbonValue, getPrimaryImpact } from "../carbon-impact";
 import { ActivityIcon, BrandMark, Icon, Notice, ThaiForm } from "../ui";
 import { CitySkyline, InkBurst, useCountUp } from "./motion";
 
@@ -97,6 +98,55 @@ function formatDateTime(value: string, locale: string): string {
   return new Date(value).toLocaleString(locale, { dateStyle: "medium", timeStyle: "short" });
 }
 
+function impactValueCopy(t: Translate, activity: Activity, rawValue: number, horizonYears = 5): string {
+  const count = formatCarbonValue(rawValue);
+  if (activity === "bus") return t("น้อยกว่ารถยนต์ประมาณ {count} กก. CO₂", { count });
+  if (activity === "recycling") return t("หลีกเลี่ยงประมาณ {count} กก. CO₂e", { count });
+  return t("คาดว่าจะดูดซับประมาณ {count} กก. CO₂e ใน {years} ปี", { count, years: horizonYears });
+}
+
+function impactNoteCopy(t: Translate, activity: Activity): string {
+  if (activity === "bus") return t("เปรียบเทียบการปล่อยช่วงใช้งานในระยะทางเดียวกัน");
+  if (activity === "recycling") return t("ประเมินจากจำนวนขวด PET ที่ตรวจสอบแล้ว โดยสมมติว่ารีไซเคิลสำเร็จ");
+  return t("ปรับตามอัตรารอด ไม่ใช่คาร์บอนเครดิตที่รับรองแล้ว");
+}
+
+function ClimateReceipt({ activity, impacts }: { activity: Activity; impacts: Claim["claim"]["impacts"] }) {
+  const { t } = useI18n();
+  const impact = getPrimaryImpact(activity, impacts);
+  if (!impact) return null;
+  return (
+    <section className={`climate-receipt ${activity}`} aria-label={t("ผลกระทบคาร์บอนของฉัน")}>
+      <div className="climate-receipt-value">
+        <Icon name="activity" />
+        <strong>{impactValueCopy(t, activity, Number(impact.kg_co2e), impact.horizon_years)}</strong>
+      </div>
+      <p>{impactNoteCopy(t, activity)}</p>
+      <details>
+        <summary>{t("คำนวณอย่างไร")}<Icon name="chevron" /></summary>
+        <p>{t("เป็นค่าประมาณจากแนวทาง TGO ไม่ใช่คาร์บอนเครดิต")}</p>
+      </details>
+    </section>
+  );
+}
+
+function BalanceImpactSummary({ avoided, projected }: { avoided: string; projected: string }) {
+  const { t } = useI18n();
+  return (
+    <div className="balance-impact" role="region" aria-live="polite" aria-label={t("ผลกระทบคาร์บอนของฉัน")}>
+      <h2>{t("ผลกระทบคาร์บอนของฉัน")}</h2>
+      <dl>
+        <div><dt>{t("การปล่อยที่หลีกเลี่ยง (โดยประมาณ)")}</dt><dd><strong>{formatCarbonTotal(Number(avoided))}</strong> kg CO₂e</dd></div>
+        <div><dt>{t("การดูดซับที่คาดการณ์ (5 ปี)")}</dt><dd><strong>{formatCarbonTotal(Number(projected))}</strong> kg CO₂e</dd></div>
+      </dl>
+      <details>
+        <summary>{t("คำนวณอย่างไร")}<Icon name="chevron" /></summary>
+        <p>{t("เป็นค่าประมาณจากแนวทาง TGO ไม่ใช่คาร์บอนเครดิต")}</p>
+      </details>
+    </div>
+  );
+}
+
 function PageHeader({ title, subtitle, onBack }: { title: string; subtitle?: string; onBack?: () => void }) {
   const { t } = useI18n();
   return (
@@ -108,7 +158,7 @@ function PageHeader({ title, subtitle, onBack }: { title: string; subtitle?: str
   );
 }
 
-function BalanceModule({ points, reward }: { points: number; reward?: Reward }) {
+function BalanceModule({ points, reward, avoided, projected }: { points: number; reward?: Reward; avoided: string; projected: string }) {
   const { t, language } = useI18n();
   const displayPoints = useCountUp(points);
   const target = reward?.pointsCost ?? 20;
@@ -128,7 +178,7 @@ function BalanceModule({ points, reward }: { points: number; reward?: Reward }) 
               : t("อีก {count} คะแนน รับ{reward}", { count: remaining, reward: localizeRewardTitle(language, reward.titleThai) })
             : t("อีก {count} คะแนน ถึงรางวัล", { count: remaining })}</p>
       </div>
-      <Suspense fallback={<CitySkyline />}><CityCanvas points={points} /></Suspense>
+      <BalanceImpactSummary avoided={avoided} projected={projected} />
     </section>
   );
 }
@@ -204,7 +254,7 @@ function HomeScreen({ onNavigate, onSelectActivity }: { onNavigate: (page: Consu
     <div className="home-screen">
       <PageHeader title={data.points === 0 ? t("เริ่มกิจกรรมแรกของคุณ") : t("กลับมารับคะแนนกัน")} subtitle={t("ทำกิจกรรมที่ช่วยโลก แล้วรับคะแนนเมื่อผ่านการตรวจสอบ")} />
       <section className="home-hero">
-        <BalanceModule points={data.points} reward={firstReward} />
+        <BalanceModule points={data.points} reward={firstReward} avoided={data.personal.estimated_avoided_co2e} projected={data.personal.projected_sequestration_co2e} />
         <button className="primary-button home-primary" onClick={() => onNavigate("activities")}><Icon name="activity" />{t("ทำกิจกรรมรับคะแนน")}</button>
       </section>
       <section className="content-section">
@@ -297,7 +347,7 @@ function ActivityCapture({ activity, onBack, onHistory }: { activity: Activity; 
   const [photo, setPhoto] = useState<CapturedPhoto>();
   const [state, setState] = useState<RequestState>("idle");
   const [error, setError] = useState("");
-  const [completion, setCompletion] = useState<{ status: Claim["claim"]["status"]; awardedPoints: number }>();
+  const [completion, setCompletion] = useState<{ status: Claim["claim"]["status"]; awardedPoints: number; impacts: Claim["claim"]["impacts"] }>();
   const busTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => () => {
@@ -380,7 +430,7 @@ function ActivityCapture({ activity, onBack, onHistory }: { activity: Activity; 
         alightedAt: completedSamples.at(-1)!.recordedAt,
         samples: completedSamples,
       }, { "idempotency-key": idempotencyKey() });
-      setCompletion({ status: result.claim.status, awardedPoints: result.claim.awarded_points });
+      setCompletion({ status: result.claim.status, awardedPoints: result.claim.awarded_points, impacts: result.claim.impacts });
       setSamples([]);
       setState("success");
     } catch (cause) {
@@ -417,7 +467,7 @@ function ActivityCapture({ activity, onBack, onHistory }: { activity: Activity; 
             droppedOffAt: photo.capturedAt,
           };
       const result = await api<Claim>(`/actions/${activity}`, "POST", payload, { "idempotency-key": idempotencyKey() });
-      setCompletion({ status: result.claim.status, awardedPoints: result.claim.awarded_points });
+      setCompletion({ status: result.claim.status, awardedPoints: result.claim.awarded_points, impacts: result.claim.impacts });
       formElement.reset();
       setPhoto(undefined);
       setState("success");
@@ -454,6 +504,7 @@ function ActivityCapture({ activity, onBack, onHistory }: { activity: Activity; 
             <p className="success-points">{t("รอตรวจสอบ")}</p>
           </>
         )}
+        {verified && <ClimateReceipt activity={activity} impacts={completion?.impacts ?? []} />}
         <button className="primary-button" onClick={onHistory}>{t("ดูประวัติกิจกรรม")}</button>
         <button className="text-button" onClick={onBack}>{t("กลับไปทำกิจกรรม")}</button>
       </div>
@@ -517,7 +568,7 @@ function HistoryScreen({ onBack }: { onBack: () => void }) {
       {state === "success" && items.length === 0 && <div className="empty-state"><Icon name="history" /><strong>{t("ยังไม่มีกิจกรรม")}</strong><p>{t("กิจกรรมที่ส่งแล้วจะปรากฏที่นี่")}</p></div>}
       <ul className="history-list">
         {items.map(({ claim }) => {
-          const impact = claim.impacts?.reduce((total, row) => total + Number(row.kg_co2e), 0) ?? 0;
+          const impact = getPrimaryImpact(claim.activity, claim.impacts);
           return (
             <li key={claim.id}>
               <span className="activity-icon"><ActivityIcon activity={claim.activity} /></span>
@@ -525,7 +576,7 @@ function HistoryScreen({ onBack }: { onBack: () => void }) {
                 <strong>{activityCopy[claim.activity].title}</strong>
                 <small>{formatDateTime(claim.submitted_at, locale)}</small>
                 {claim.reason_code && <p>{t(consumerReasonCopy[claim.reason_code] ?? "กำลังตรวจสอบข้อมูลเพิ่มเติม")}</p>}
-                {impact > 0 && <small>{t("ค่าประมาณ {count} กก. CO₂e", { count: impact.toFixed(2) })}</small>}
+                {impact && Number(impact.kg_co2e) > 0 && <small className="history-impact">{impactValueCopy(t, claim.activity, Number(impact.kg_co2e), impact.horizon_years)}</small>}
               </div>
               <div className={`consumer-status ${claim.status}`}><span>{claimStatusCopy[claim.status]}</span>{claim.status === "verified" && <strong>{t("+{count} คะแนน", { count: claim.awarded_points })}</strong>}</div>
             </li>
