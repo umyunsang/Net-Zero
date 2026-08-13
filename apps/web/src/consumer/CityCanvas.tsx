@@ -86,6 +86,7 @@ export function CityCanvas({ points, fallback = "skyline" }: { points: number; f
     host.appendChild(renderer.domElement);
     host.dataset.interactive = "true";
     host.dataset.hovered = "false";
+    host.dataset.replaying = "false";
 
     const scene = new THREE.Scene();
     const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 60);
@@ -183,15 +184,39 @@ export function CityCanvas({ points, fallback = "skyline" }: { points: number; f
     let hovering = false;
     let hoverBlend = 0;
     let lastX = 0;
+    let pointerStartX = 0;
+    let pointerStartY = 0;
+    let pointerMoved = false;
+    let replaying = false;
     let spin = 0;
-    const onPointerDown = (event: PointerEvent) => { dragging = true; lastX = event.clientX; };
+    const replayGrowth = () => {
+      if (reduceMotion || structures.length === 0) return;
+      const now = performance.now();
+      structures.forEach((structure, index) => {
+        structure.mesh.scale.setScalar(0.001);
+        structure.bornAt = now + index * 45;
+      });
+      replaying = true;
+      host.dataset.replaying = "true";
+    };
+    const onPointerDown = (event: PointerEvent) => {
+      dragging = true;
+      pointerMoved = false;
+      pointerStartX = event.clientX;
+      pointerStartY = event.clientY;
+      lastX = event.clientX;
+    };
     const onPointerMove = (event: PointerEvent) => {
       if (!dragging) return;
+      if (Math.hypot(event.clientX - pointerStartX, event.clientY - pointerStartY) > 6) pointerMoved = true;
       spin = (event.clientX - lastX) * 0.008;
       city.rotation.y += spin;
       lastX = event.clientX;
     };
-    const onPointerUp = () => { dragging = false; };
+    const onPointerUp = () => {
+      if (dragging && !pointerMoved) replayGrowth();
+      dragging = false;
+    };
     const onPointerEnter = () => { hovering = true; host.dataset.hovered = "true"; };
     const onPointerLeave = () => { hovering = false; dragging = false; host.dataset.hovered = "false"; };
     renderer.domElement.addEventListener("pointerdown", onPointerDown);
@@ -223,6 +248,10 @@ export function CityCanvas({ points, fallback = "skyline" }: { points: number; f
         structure.mesh.scale.setScalar(Math.max(progress === 1 ? 1 : overshoot, 0.001));
         if (progress === 1) structure.bornAt = 0;
       }
+      if (replaying && structures.every((structure) => structure.bornAt === 0)) {
+        replaying = false;
+        if (host) host.dataset.replaying = "false";
+      }
       renderer.render(scene, camera);
       raf = requestAnimationFrame(frame);
     }
@@ -253,6 +282,7 @@ export function CityCanvas({ points, fallback = "skyline" }: { points: number; f
       window.removeEventListener("pointerup", onPointerUp);
       delete host.dataset.interactive;
       delete host.dataset.hovered;
+      delete host.dataset.replaying;
       scene.traverse((object) => {
         if (object instanceof THREE.Mesh || object instanceof THREE.LineSegments) {
           object.geometry.dispose();

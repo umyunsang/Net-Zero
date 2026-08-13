@@ -707,6 +707,7 @@ body::after { display: none; }
 .city-motif { position: relative; min-height: 100px; }
 .city-motif canvas { position: absolute; inset: 0; width: 100% !important; height: 100% !important; transition: filter 220ms ease; }
 .city-motif[data-hovered="true"] canvas { filter: drop-shadow(0 8px 5px rgba(20, 100, 71, .14)); }
+.city-motif[data-replaying="true"] canvas { filter: drop-shadow(0 9px 6px rgba(231, 120, 0, .16)); }
 .consumer-app .section-heading { padding-bottom: 0; border-bottom: 0; }
 .consumer-app .section-heading h2::before { content: none; }
 .consumer-app .activity-icon { border: 0; border-radius: 0; background: transparent; color: var(--color-green-700); }

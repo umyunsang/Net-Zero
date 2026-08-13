@@ -220,6 +220,9 @@ test("welcome reuses the centred Fable 3D city across cover ratios", async ({ pa
   await expect(interactiveCity).toHaveAttribute("data-hovered", "true");
   await page.mouse.move(0, 0);
   await expect(interactiveCity).toHaveAttribute("data-hovered", "false");
+  await interactiveCity.locator("canvas").click();
+  await expect(interactiveCity).toHaveAttribute("data-replaying", "true");
+  await expect(interactiveCity).toHaveAttribute("data-replaying", "false", { timeout: 2_000 });
 });
 
 test("1024px home keeps the score hierarchy readable beside the secondary column", async ({ page }) => {
