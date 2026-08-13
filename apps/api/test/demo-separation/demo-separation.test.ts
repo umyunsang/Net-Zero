@@ -117,6 +117,7 @@ describeIntegration("demo and real-data separation", () => {
     try {
       await client.query("begin");
       await client.query("set local session_replication_role='replica'");
+      await client.query("delete from demo_factor_manifest_revisions where activity='tree'");
       await client.query("delete from demo_factor_manifest where activity='tree'");
       await client.query("commit");
     } finally {
@@ -134,7 +135,7 @@ describeIntegration("demo and real-data separation", () => {
       await mismatchClient.query(
         `update factor_catalog
          set activity='bus'
-         where id=(select factor_id from demo_factor_manifest where activity='tree')`,
+         where id=(select factor_id from current_demo_factor_manifest where activity='tree')`,
       );
       await mismatchClient.query("commit");
     } finally {
@@ -159,7 +160,7 @@ describeIntegration("demo and real-data separation", () => {
       },
     });
     const factors = await request(app.getHttpServer()).get("/api/admin/factors").set(bearer(admin)).expect(200);
-    expect(factors.body.items).toHaveLength(3);
+    expect(factors.body.items).toHaveLength(6);
     expect(factors.body.items).toEqual(expect.arrayContaining([
       expect.objectContaining({ status: "draft", mock_approval_scope: "mock_demo", mock_is_mock: true, mock_demo_only: true }),
     ]));
@@ -180,7 +181,7 @@ describeIntegration("demo and real-data separation", () => {
       await client.query(
         `update factor_catalog
          set status='approved',approved_by=$1,approved_role='admin',approved_at=now()
-         where id in (select factor_id from demo_factor_manifest)`,
+         where id in (select factor_id from current_demo_factor_manifest)`,
         [productionAdmin.rows[0]!.id],
       );
       await client.query("update deployment_metadata set data_scope='production' where singleton=true");

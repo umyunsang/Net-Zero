@@ -38,6 +38,7 @@ export async function resetPublicData(): Promise<void> {
     for (const seed of [
       new URL("../../../../seed/demo/001_demo.sql", import.meta.url),
       new URL("../../../../seed/approved-factors/001_tgo_candidates.sql", import.meta.url),
+      new URL("../../../../seed/approved-factors/002_carbon_impact_v2.sql", import.meta.url),
     ]) {
       await pool.query(await readFile(fileURLToPath(seed), "utf8"));
     }

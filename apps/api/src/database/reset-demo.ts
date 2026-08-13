@@ -11,6 +11,7 @@ assertMockDemoConfig(config);
 const seedFiles = [
   new URL("../../../../seed/demo/001_demo.sql", import.meta.url),
   new URL("../../../../seed/approved-factors/001_tgo_candidates.sql", import.meta.url),
+  new URL("../../../../seed/approved-factors/002_carbon_impact_v2.sql", import.meta.url),
 ];
 
 const pool = new pg.Pool({ connectionString: config.DATABASE_URL });

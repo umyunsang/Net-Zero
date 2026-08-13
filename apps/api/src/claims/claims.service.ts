@@ -404,7 +404,7 @@ export class ClaimsService {
            from factor_catalog
            where id=$1 and status='draft' and is_synthetic=false
              and code !~* '^(test|synthetic|fixture)([-_]|$)'
-             and exists(select 1 from demo_factor_manifest where factor_id=$1)
+             and exists(select 1 from current_demo_factor_manifest where factor_id=$1)
            on conflict(factor_id) do nothing
            returning (select activity from factor_catalog where id=$1) activity,reviewed_digest,approved_at`,
           [id, actor],
@@ -463,7 +463,7 @@ export class ClaimsService {
     const databaseScope = marker.rows[0]?.data_scope ?? null;
     const mockLabels = await this.database.query<{ activity: Activity; approval_scope: string | null; is_mock: boolean | null; demo_only: boolean | null }>(
       `select manifest.activity,mock.approval_scope,mock.is_mock,mock.demo_only
-       from demo_factor_manifest manifest
+       from current_demo_factor_manifest manifest
        left join mock_demo_factor_approvals mock on mock.factor_id=manifest.factor_id`,
     );
     const labels = Object.fromEntries(mockLabels.rows.map(row => [row.activity, row]));

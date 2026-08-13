@@ -45,9 +45,17 @@ describeIntegration("complete Thai hackathon demo", () => {
       .expect(200);
     expect(factors.body.items.map((factor: { activity: string }) => factor.activity).sort()).toEqual([
       "bus",
+      "bus",
+      "recycling",
       "recycling",
       "tree",
+      "tree",
     ]);
+    expect(factors.body.items).toEqual(expect.arrayContaining([
+      expect.objectContaining({ activity: "bus", code: "DEMO_BUS_ROUTE_02" }),
+      expect.objectContaining({ activity: "recycling", code: "PET_BOTTLE_COUNT_PROXY_V2" }),
+      expect.objectContaining({ activity: "tree", code: "TREE_FIVE_YEAR_SURVIVAL_PROXY" }),
+    ]));
     for (const factor of factors.body.items as Array<{ id: string }>) {
       await request(app.getHttpServer())
         .patch(`/api/admin/factors/${factor.id}/approve`)
@@ -214,7 +222,7 @@ describeIntegration("complete Thai hackathon demo", () => {
     expect(lineage.rows.map((row) => row.activity)).toEqual(["bus", "recycling", "tree"]);
     expect(lineage.rows.find((row) => row.activity === "tree")).toMatchObject({
       impact_type: "projected_sequestration",
-      kg_co2e: "9.500000",
+      kg_co2e: "29.925000",
       points: 15,
       is_demo: true,
       is_synthetic: false,
@@ -232,7 +240,7 @@ describeIntegration("complete Thai hackathon demo", () => {
        where event_type in ('factor.mock_demo_seeded','impact.credited')
        order by event_type,subject_id`,
     );
-    expect(mockAudit.rows.filter((row) => row.event_type === "factor.mock_demo_seeded")).toHaveLength(3);
+    expect(mockAudit.rows.filter((row) => row.event_type === "factor.mock_demo_seeded")).toHaveLength(6);
     expect(mockAudit.rows.filter((row) => row.event_type === "impact.credited")).toHaveLength(3);
     expect(mockAudit.rows.every((row) =>
       row.metadata.data_scope === "mock_demo"
@@ -246,7 +254,8 @@ describeIntegration("complete Thai hackathon demo", () => {
       .expect(200);
     expect(dashboardBeforeReward.body.points).toBe(38);
     expect(Number(dashboardBeforeReward.body.personal.estimated_avoided_co2e)).toBeGreaterThan(0);
-    expect(dashboardBeforeReward.body.personal.projected_sequestration_co2e).toBe("9.500000");
+    expect(Number(dashboardBeforeReward.body.personal.estimated_avoided_co2e)).toBeCloseTo(1.853566, 6);
+    expect(dashboardBeforeReward.body.personal.projected_sequestration_co2e).toBe("29.925000");
     expect(dashboardBeforeReward.body.community).toEqual(dashboardBeforeReward.body.personal);
 
     const catalog = await request(app.getHttpServer())
@@ -332,7 +341,7 @@ describeIntegration("complete Thai hackathon demo", () => {
       viewer: { opted_in: true, pseudonym_th: "ผู้ใช้-ใบไม้-1001" },
       community_totals: {
         verified_weekly_points: 38,
-        projected_sequestration_co2e: "9.500000",
+        projected_sequestration_co2e: "29.925000",
       },
     });
     expect(demoLeaderboard.body.entries).toEqual(expect.arrayContaining([

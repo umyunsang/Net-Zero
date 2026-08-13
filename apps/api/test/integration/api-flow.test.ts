@@ -32,7 +32,7 @@ describeIntegration("real API flow", () => {
       await client.query("set local session_replication_role='replica'");
       await client.query(
         `delete from mock_demo_factor_approvals
-         where factor_id=(select factor_id from demo_factor_manifest where activity=$1)`,
+         where factor_id=(select factor_id from current_demo_factor_manifest where activity=$1)`,
         [activity],
       );
       await client.query("commit");
@@ -327,11 +327,11 @@ describeIntegration("real API flow", () => {
       "select factor_snapshot,result_kg_co2e::text result from calculation_snapshots where claim_id=$1 and entry_kind='original'",
       [claim.body.claim.id],
     );
-    expect(calculation.rows[0]?.result).toBe("9.500000");
+    expect(calculation.rows[0]?.result).toBe("29.925000");
     expect(calculation.rows[0]?.factor_snapshot).toMatchObject({
       id: tree.id,
       activity: "tree",
-      code: "TREE_ONE_YEAR_PROXY",
+      code: "TREE_FIVE_YEAR_SURVIVAL_PROXY",
       value: "9.500000000",
       status: "draft",
       approved_role: "admin",
@@ -339,7 +339,7 @@ describeIntegration("real API flow", () => {
       approval_scope: "mock_demo",
       is_mock: true,
       demo_only: true,
-      assumptions: { time_basis: "one_year" },
+      assumptions: { projection_years: "5", survival_factor: "0.63" },
     });
     expect(calculation.rows[0]?.factor_snapshot.reviewed_digest).toMatch(/^[a-f0-9]{64}$/);
     const ledger = await app.get(DatabaseService).query<{ count: number; points: number }>(
@@ -355,7 +355,7 @@ describeIntegration("real API flow", () => {
          (select count(*)::int from calculation_snapshots where claim_id=$1 and entry_kind='correction') corrections`,
       [claim.body.claim.id],
     );
-    expect(corrected.rows[0]).toEqual({ carbon: "8.000000", points: 20, corrections: 1 });
+    expect(corrected.rows[0]).toEqual({ carbon: "8.000000", points: 15, corrections: 1 });
     await expect(app.get(DatabaseService).query("update point_ledger set points=points+1 where claim_id=$1", [claim.body.claim.id])).rejects.toThrow();
     await expect(app.get(DatabaseService).query("update calculation_snapshots set result_kg_co2e=0 where claim_id=$1", [claim.body.claim.id])).rejects.toThrow();
   });
@@ -693,7 +693,7 @@ describeIntegration("real API flow", () => {
       claim_rows: 1,
       evidence_bindings: 2,
       fingerprints: 1,
-      point_credits: 0,
+      point_credits: 1,
     });
   });
 
@@ -704,12 +704,20 @@ describeIntegration("real API flow", () => {
     await request(app.getHttpServer()).post(`/api/evidence/${photoInit.body.uploadId}/content`).set(bearer(user)).set("x-upload-token", photoInit.body.uploadToken).set("content-type", "image/jpeg").send(photo).expect(201);
     const photoEvidence = await request(app.getHttpServer()).post(`/api/evidence/${photoInit.body.uploadId}/finalize`).set(bearer(user)).send({ sha256: photoHash }).expect(201);
     const recycling = await request(app.getHttpServer()).post("/api/actions/recycling").set(bearer(user)).set("idempotency-key", "recycling-review-flow").send({ evidenceIds: [photoEvidence.body.evidenceId], binCode: "DEMO-BIN-BKK-01:TOKEN-0001", material: "plastic", itemCount: 2, droppedOffAt: new Date().toISOString() }).expect(201);
-    expect(recycling.body.claim).toMatchObject({ status: "verified", impact_status: "credited" });
+    expect(recycling.body.claim).toMatchObject({ status: "verified", impact_status: "credited", awarded_points: 1 });
     const declaration = await app.get(DatabaseService).query<{ declared_count: number; approved_count: number }>(
       "select declared_count,approved_count from recycling_declarations where claim_id=$1",
       [recycling.body.claim.id],
     );
     expect(declaration.rows[0]).toEqual({ declared_count: 2, approved_count: 2 });
+    const recyclingCredit = await app.get(DatabaseService).query<{ points: number; metadata: Record<string, unknown> }>(
+      "select points,metadata from point_ledger where claim_id=$1 and kind='credit'",
+      [recycling.body.claim.id],
+    );
+    expect(recyclingCredit.rows[0]).toMatchObject({
+      points: 1,
+      metadata: expect.objectContaining({ reward_policy: "mock_demo_activity_v2", awarded_points: 1 }),
+    });
     await request(app.getHttpServer()).patch(`/api/review/claims/${recycling.body.claim.id}`).set(bearer(reviewer)).send({ decision: "approve", approvedItemCount: 2 }).expect(409);
 
     const samples = [{ recordedAt: new Date(Date.now() - 120_000).toISOString(), latitude: "13.7649", longitude: "100.5350", accuracyMeters: "5" }, { recordedAt: new Date(Date.now() - 60_000).toISOString(), latitude: "13.7649", longitude: "100.5387", accuracyMeters: "5" }];

@@ -21,8 +21,10 @@ export const READINESS_SOURCE_FILES = [
   "apps/api/src/rewards/rewards.service.ts",
   "apps/api/test/demo-separation/full-demo.test.ts",
   "migrations/001_initial.sql",
+  "migrations/004_carbon_impact_v2.sql",
   "seed/demo/001_demo.sql",
   "seed/approved-factors/001_tgo_candidates.sql",
+  "seed/approved-factors/002_carbon_impact_v2.sql",
 ] as const;
 
 type MockFactorRow = { activity: string; ready: boolean; factor_id: string | null; factor_status: string | null; approval_scope: string | null; is_mock: boolean | null; demo_only: boolean | null; review_digest: string | null; reviewed_digest: string | null };
@@ -139,7 +141,7 @@ async function run(): Promise<void> {
       pool.query<MockFactorRow>(`select readiness.activity,readiness.ready,readiness.factor_id,factor.status::text factor_status,approval.approval_scope,approval.is_mock,approval.demo_only,factor.review_digest,approval.reviewed_digest from mock_demo_factor_readiness readiness left join factor_catalog factor on factor.id=readiness.factor_id left join mock_demo_factor_approvals approval on approval.factor_id=factor.id order by readiness.activity`),
       pool.query<ProductionFactorRow>("select activity,ready,factor_id from production_factor_readiness order by activity"),
       pool.query<{ data_scope: string }>("select data_scope from deployment_metadata where singleton=true"),
-      pool.query<FixtureRow>(`select 'factor' kind,manifest.activity || ':' || coalesce(manifest.expected_material,'') identifier,factor.id::text id,factor.review_digest || ':' || coalesce(approval.reviewed_digest,'missing') digest from demo_factor_manifest manifest join factor_catalog factor on factor.id=manifest.factor_id left join mock_demo_factor_approvals approval on approval.factor_id=factor.id union all select 'route',code || ':' || version::text,id::text,encode(digest(code || ':' || version::text,'sha256'),'hex') from routes union all select 'bin',code,id::text,encode(digest(code,'sha256'),'hex') from qr_bins union all select 'reward',id::text,id::text,encode(digest(title_th || ':' || point_cost::text,'sha256'),'hex') from rewards order by 1,2,3`),
+      pool.query<FixtureRow>(`select 'factor' kind,manifest.activity || ':' || coalesce(manifest.expected_material,'') identifier,factor.id::text id,factor.review_digest || ':' || coalesce(approval.reviewed_digest,'missing') digest from current_demo_factor_manifest manifest join factor_catalog factor on factor.id=manifest.factor_id left join mock_demo_factor_approvals approval on approval.factor_id=factor.id union all select 'route',code || ':' || version::text,id::text,encode(digest(code || ':' || version::text,'sha256'),'hex') from routes union all select 'bin',code,id::text,encode(digest(code,'sha256'),'hex') from qr_bins union all select 'reward',id::text,id::text,encode(digest(title_th || ':' || point_cost::text,'sha256'),'hex') from rewards order by 1,2,3`),
       pool.query<{ claims: string; vouchers: string; carbon_ledger: string; point_ledger: string }>("select (select count(*) from claims)::text claims,(select count(*) from vouchers)::text vouchers,(select count(*) from carbon_ledger)::text carbon_ledger,(select count(*) from point_ledger)::text point_ledger"),
     ]);
     const count = counts.rows[0];

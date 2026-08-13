@@ -22,7 +22,7 @@ describeDatabase('initial database migration', () => {
     const extensions = await sql<{ extname: string }>`select extname from pg_extension where extname = 'postgis'`.execute(database);
     expect(extensions.rows).toHaveLength(1);
     const tables = await sql<{ tablename: string }>`select tablename from pg_tables where schemaname = 'public'`.execute(database);
-    expect(tables.rows.map((row) => row.tablename)).toEqual(expect.arrayContaining(['claims', 'factor_catalog', 'mock_demo_factor_approvals', 'demo_factor_manifest', 'calculation_snapshots', 'carbon_ledger', 'point_ledger', 'vouchers']));
+    expect(tables.rows.map((row) => row.tablename)).toEqual(expect.arrayContaining(['claims', 'factor_catalog', 'mock_demo_factor_approvals', 'demo_factor_manifest', 'demo_factor_manifest_revisions', 'calculation_snapshots', 'carbon_ledger', 'point_ledger', 'vouchers']));
   });
 
   it('installs immutable-ledger protections and records no migration twice', async () => {
