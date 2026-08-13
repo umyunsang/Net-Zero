@@ -139,3 +139,5 @@
 - Sorted wallet rewards by point cost so the visible 20-point first reward matches the score target before the 40-point option.
 - Final verification passes: web typecheck, production build, repository `pnpm test`, full Chromium desktop + Pixel 7 Playwright 36/36, `git diff --check`, and direct in-app renders at 430 and 1440 px. The production build retains the existing non-blocking 514 kB lazy Three.js city-chunk warning.
 - Clarified the next publication boundary: Cloudflare will host a public mock presentation demo only, with no production DB, administrator approval service, or real-user data connection. Source commits and the remote `main` update precede that deployment.
+- Added a presentation-only browser data adapter and hid privileged role switching in that public build. Local desktop and Pixel 7 tests pass the complete 0 -> 38 -> voucher -> 18 -> leaderboard journey with zero `/api` requests; the normal API-backed E2E suite remains 36/36.
+- Published the mock SPA to `https://net-zero-reward-demo.umyunsang.workers.dev` as Cloudflare Worker version `96d330c5-6f68-42a7-a63e-cba247b5e6b3`. Remote desktop and Pixel 7 presentation tests pass 2/2.

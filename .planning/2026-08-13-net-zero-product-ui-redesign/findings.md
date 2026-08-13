@@ -236,6 +236,8 @@
 - The new brand lockup is one shared `BrandMark`: a zero-ring/leaf symbol, orange terminal point, and invariant Fraunces `Net Zero` wordmark. It is used by Welcome, consumer, and operational headers and is never translated.
 - Final live measurements show zero horizontal overflow at 430 and 1440 px; Home activity thumbnails are 92×58 at 430 px, full activity scenes are 388×82, the 1440 px hero/secondary tracks are 712/340 px, and primary navigation remains four destinations.
 - The requested Cloudflare target is a publicly reachable mock presentation demo for PT audiences, not an operational production service. It must not connect production data, administrator workflows, or real-user state.
+- Cloudflare Pages project creation returned an account-side HTTP 500 (`code 8000000`), so publication used Cloudflare Workers Static Assets instead. The deployed SPA is still static and uses the same browser-local mock-only boundary.
+- The public build starts every new browser at 0 points and persists only in that browser. Completing bus, a 46-item recycling sample, and tree awards 3 + 20 + 15 = 38 points; redeeming the 20-point voucher leaves 18 points while weekly earned points remain 38 on the leaderboard.
 - The new leaderboard and language selector must be integrated into that approved composition rather than creating another navigation job or presentation-style surface.
 
 ## Phase 7 typography acceptance

@@ -104,12 +104,20 @@ Phase 8
 - **Status:** complete
 
 ### Phase 10: Cloudflare public presentation demo
-- [ ] Confirm the active worktree, runtime dependencies, Cloudflare authentication, and mock-only frontend/API boundary
-- [ ] Add the minimum public-demo configuration without changing the approved consumer UX or reward semantics
-- [ ] Validate build and Cloudflare configuration locally before external deployment
-- [ ] Deploy the mock presentation surface and verify the public URL, demo flow, responsive layout, and multilingual switching
-- [ ] Record the deployment URL, version evidence, and any remaining infrastructure boundary
-- **Status:** pending source publication
+- [x] Confirm the active worktree, runtime dependencies, Cloudflare authentication, and mock-only frontend/API boundary
+- [x] Add the minimum public-demo configuration without changing the approved consumer UX or reward semantics
+- [x] Validate build and Cloudflare configuration locally before external deployment
+- [x] Deploy the mock presentation surface and verify the public URL, demo flow, responsive layout, and multilingual switching
+- [x] Record the deployment URL, version evidence, and remaining infrastructure boundary
+- **Status:** complete
+
+## Public presentation deployment receipt
+- URL: `https://net-zero-reward-demo.umyunsang.workers.dev`
+- Cloudflare Worker version: `96d330c5-6f68-42a7-a63e-cba247b5e6b3`
+- Hosting: Cloudflare Workers Static Assets with SPA fallback
+- Data boundary: browser-local mock state only; no production database, administrator workflow, or real-user data
+- Verified presentation path: 0 points -> bus 3 + recycling 20 + tree 15 = 38 -> redeem 20-point voucher -> 18-point balance -> leaderboard reflects 38 weekly points
+- Remote verification: Chromium desktop and Pixel 7, 2/2 passed, with zero `/api` requests
 
 ## Constraints
 - Do not use the PPT as a page-layout or typography template.
