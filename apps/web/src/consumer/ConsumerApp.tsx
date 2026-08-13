@@ -438,7 +438,7 @@ function ActivityCapture({ activity, onBack, onHistory }: { activity: Activity; 
           <>
             <div className="success-city-stage">
               <Suspense fallback={<span className="success-city-loading" />}>
-                <CityCanvas points={awardedPoints} fallback="empty" />
+                <CityCanvas points={awardedPoints} fallback="empty" growthMode="earned" />
               </Suspense>
             </div>
             <div className="success-copy">
@@ -739,6 +739,9 @@ function LeaderboardScreen({ onBack }: { onBack: () => void }) {
   const heading = <PageHeader title={t("อันดับประจำสัปดาห์")} subtitle={t("เปรียบเทียบคะแนนกับชื่อเล่นของสมาชิกในชุมชน")} onBack={onBack} />;
 
   if (!data) return <div className="leaderboard-screen">{heading}<div className="screen-state"><Notice state={error ? "error" : "loading"} error={error} /></div></div>;
+  const viewerPoints = data.viewer.pseudonym_th
+    ? data.entries.find((entry) => entry.pseudonym_th === data.viewer.pseudonym_th)?.weekly_points ?? 0
+    : 0;
 
   return (
     <div className="leaderboard-screen">
@@ -766,7 +769,7 @@ function LeaderboardScreen({ onBack }: { onBack: () => void }) {
         </section>
         <aside className="leaderboard-participation">
           <div className="leaderboard-city" aria-hidden="true">
-            <Suspense fallback={<CitySkyline />}><CityCanvas points={data.community_totals.verified_weekly_points} /></Suspense>
+            <Suspense fallback={null}><CityCanvas points={viewerPoints} fallback="empty" growthMode="earned" /></Suspense>
           </div>
           <span className="leaderboard-profile-mark" aria-hidden="true">LR</span>
           <h2>{t("การเข้าร่วมของคุณ")}</h2>

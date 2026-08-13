@@ -376,6 +376,12 @@ test("leaderboard Fable city stays centred and visible across viewport ratios", 
   await page.getByRole("button", { name: "ฉัน", exact: true }).click();
   await page.getByRole("button", { name: /อันดับประจำสัปดาห์/ }).click();
 
+  const progressiveCity = page.locator(".leaderboard-city .city-motif");
+  await expect(progressiveCity).toHaveAttribute("data-growth-mode", "earned");
+  await expect(progressiveCity).toHaveAttribute("data-points", "40");
+  await expect(progressiveCity).toHaveAttribute("data-buildings", "10");
+  await expect(progressiveCity).toHaveAttribute("data-trees", "13");
+
   for (const viewport of [
     { width: 320, height: 568 },
     { width: 393, height: 852 },

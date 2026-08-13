@@ -65,6 +65,11 @@ test("public presentation demo completes points, voucher, and leaderboard flow w
   await expect(page.getByText("สลับบทบาทสาธิต", { exact: true })).toHaveCount(0);
   await page.getByRole("button", { name: /อันดับประจำสัปดาห์/ }).click();
   await expect(page.locator(".full-list li").filter({ hasText: "ผู้ใช้-ใบไม้-1001" })).toContainText("38");
+  const leaderboardCity = page.locator(".leaderboard-city .city-motif");
+  await expect(leaderboardCity).toHaveAttribute("data-growth-mode", "earned");
+  await expect(leaderboardCity).toHaveAttribute("data-points", "38");
+  await expect(leaderboardCity).toHaveAttribute("data-buildings", "9");
+  await expect(leaderboardCity).toHaveAttribute("data-trees", "12");
 
   expect(apiRequests).toEqual([]);
 });

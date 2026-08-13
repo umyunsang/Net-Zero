@@ -8,6 +8,7 @@ const FOREST = 0x146447;
 const TERRACOTTA = 0xe77800;
 
 type Structure = { mesh: THREE.Object3D; bornAt: number };
+export type CityGrowthMode = "ambient" | "earned";
 
 function makeBlock(width: number, height: number, depth: number, fill: number, line: number): THREE.Object3D {
   const group = new THREE.Group();
@@ -49,10 +50,17 @@ function cellPosition(order: number): [number, number] {
   return cells[order % cells.length] ?? [0, 0];
 }
 
-export function structureBudget(points: number): { buildings: number; trees: number } {
+export function structureBudget(points: number, growthMode: CityGrowthMode = "ambient"): { buildings: number; trees: number } {
+  const earnedPoints = Math.max(0, Math.floor(points));
+  if (growthMode === "earned") {
+    return {
+      buildings: Math.min(Math.floor(earnedPoints / 4), 20),
+      trees: earnedPoints === 0 ? 0 : Math.min(Math.max(1, Math.floor(earnedPoints / 3)), 24),
+    };
+  }
   return {
-    buildings: Math.min(5 + Math.floor(points / 10), 22),
-    trees: Math.min(4 + Math.floor(points / 8), 26),
+    buildings: Math.min(5 + Math.floor(earnedPoints / 10), 22),
+    trees: Math.min(4 + Math.floor(earnedPoints / 8), 26),
   };
 }
 
@@ -61,7 +69,7 @@ export function structureBudget(points: number): { buildings: number; trees: num
  * with the verified point balance. Drag to rotate; idles on a slow turn.
  * Falls back to the static SVG skyline when WebGL is unavailable.
  */
-export function CityCanvas({ points, fallback = "skyline" }: { points: number; fallback?: "skyline" | "empty" }) {
+export function CityCanvas({ points, fallback = "skyline", growthMode = "ambient" }: { points: number; fallback?: "skyline" | "empty"; growthMode?: CityGrowthMode }) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const [webglFailed, setWebglFailed] = useState(false);
   const pointsRef = useRef(points);
@@ -125,7 +133,7 @@ export function CityCanvas({ points, fallback = "skyline" }: { points: number; f
     }
 
     function syncStructures(balance: number) {
-      const budget = structureBudget(balance);
+      const budget = structureBudget(balance, growthMode);
       const now = performance.now();
       while (builtBuildings < budget.buildings) {
         const index = builtBuildings;
@@ -152,6 +160,12 @@ export function CityCanvas({ points, fallback = "skyline" }: { points: number; f
         else tree.scale.setScalar(0.001);
         builtTrees += 1;
       }
+      if (host) {
+        host.dataset.points = String(Math.max(0, Math.floor(balance)));
+        host.dataset.buildings = String(builtBuildings);
+        host.dataset.trees = String(builtTrees);
+        host.dataset.growthMode = growthMode;
+      }
       centerStructureFootprint();
       renderer.render(scene, camera);
     }
@@ -163,7 +177,7 @@ export function CityCanvas({ points, fallback = "skyline" }: { points: number; f
       const { clientWidth, clientHeight } = host;
       if (clientWidth === 0 || clientHeight === 0) return;
       const aspect = clientWidth / clientHeight;
-      const minimumSceneWidth = 6.8;
+      const minimumSceneWidth = growthMode === "earned" ? 5.8 : 6.8;
       const minimumSceneHeight = 5.7;
       const viewHeight = Math.max(minimumSceneHeight, minimumSceneWidth / aspect);
       const viewCenterY = 0.65;
@@ -283,6 +297,10 @@ export function CityCanvas({ points, fallback = "skyline" }: { points: number; f
       delete host.dataset.interactive;
       delete host.dataset.hovered;
       delete host.dataset.replaying;
+      delete host.dataset.points;
+      delete host.dataset.buildings;
+      delete host.dataset.trees;
+      delete host.dataset.growthMode;
       scene.traverse((object) => {
         if (object instanceof THREE.Mesh || object instanceof THREE.LineSegments) {
           object.geometry.dispose();
@@ -294,7 +312,7 @@ export function CityCanvas({ points, fallback = "skyline" }: { points: number; f
       renderer.dispose();
       renderer.domElement.remove();
     };
-  }, [webglFailed]);
+  }, [growthMode, webglFailed]);
 
   if (webglFailed) return fallback === "skyline" ? <CitySkyline /> : <div className="city-motif city-unavailable" aria-hidden="true" />;
   return <div ref={hostRef} className="city-motif" aria-hidden="true" />;
