@@ -1,0 +1,35 @@
+{
+  "name": "net-zero-thailand",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.28.2",
+  "engines": {
+    "node": ">=24 <27"
+  },
+  "scripts": {
+    "build": "pnpm -r build",
+    "typecheck": "pnpm --filter @net-zero/domain build && pnpm --filter @net-zero/contracts build && pnpm -r typecheck",
+    "test": "pnpm -r test && node --test scripts/evidence-lib.test.mjs",
+    "test:unit": "pnpm --filter @net-zero/domain test",
+    "test:integration": "pnpm --filter @net-zero/api test:integration",
+    "test:contracts": "pnpm --filter @net-zero/contracts test",
+    "test:concurrency": "pnpm --filter @net-zero/api test:concurrency",
+    "test:retention": "pnpm --filter @net-zero/api test:retention",
+    "test:demo-separation": "pnpm --filter @net-zero/api test:demo-separation",
+    "test:e2e": "pnpm --filter @net-zero/web test:e2e",
+    "evidence:write": "node scripts/write-verification-reports.mjs",
+    "db:migrate": "pnpm --filter @net-zero/api db:migrate",
+    "db:seed-demo": "pnpm --filter @net-zero/api db:seed-demo",
+    "db:reset-demo": "pnpm --filter @net-zero/api db:reset-demo",
+    "db:demo-readiness": "pnpm --filter @net-zero/api db:demo-readiness",
+    "db:production-readiness": "pnpm --filter @net-zero/api db:production-readiness",
+    "demo:reset": "pnpm db:migrate && pnpm db:reset-demo",
+    "db:test-from-empty": "pnpm --filter @net-zero/api db:test-from-empty",
+    "dev": "pnpm --parallel --filter @net-zero/api --filter @net-zero/web --filter @net-zero/worker dev"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}

@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: postgis/postgis:17-3.5
+    platform: linux/amd64
+    environment:
+      POSTGRES_DB: netzero
+      POSTGRES_USER: netzero
+      POSTGRES_PASSWORD: netzero
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U netzero -d netzero"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  minio:
+    image: minio/minio:RELEASE.2025-07-23T15-54-02Z
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: netzero
+      MINIO_ROOT_PASSWORD: replace-with-object-storage-secret
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - minio-data:/data
+
+  minio-init:
+    image: minio/minio:RELEASE.2025-07-23T15-54-02Z
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >
+        mc alias set local http://minio:9000 netzero replace-with-object-storage-secret &&
+        mc mb --ignore-existing local/net-zero-evidence &&
+        mc anonymous set none local/net-zero-evidence
+    restart: "no"
+
+volumes:
+  postgres-data:
+  minio-data:
