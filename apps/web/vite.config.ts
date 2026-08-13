@@ -2,11 +2,14 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      // The public presentation must always load the current lazy 3D chunk.
+      // Replace any older offline worker with the plugin's self-removing worker.
+      selfDestroying: mode === 'presentation',
       includeAssets: ['icon.svg'],
       manifest: {
         name: 'Net Zero',
@@ -33,4 +36,4 @@ export default defineConfig({
       },
     },
   },
-});
+}));
