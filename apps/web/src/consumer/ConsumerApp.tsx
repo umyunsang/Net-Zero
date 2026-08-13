@@ -24,6 +24,7 @@ import type {
   Role,
   Voucher,
 } from "../product-types";
+import { IS_PUBLIC_PRESENTATION_DEMO } from "../public-demo";
 import { ActivityIcon, BrandMark, Icon, Notice, ThaiForm } from "../ui";
 import { CitySkyline, InkBurst, useCountUp } from "./motion";
 
@@ -800,7 +801,7 @@ function ProfileScreen({ onOpenLeaderboard, onSwitchRole, onLogout }: { onOpenLe
       </section>
       <section className="profile-section subtle-section">
         <details className="settings-details"><summary>{t("เกี่ยวกับเวอร์ชันสาธิต")}<Icon name="chevron" /></summary><p>{t("ตัวตน หลักฐาน และการทำงานของผู้ให้บริการในเวอร์ชันนี้เป็นข้อมูลจำลอง ผลกระทบที่แสดงเป็นค่าประมาณและไม่ใช่คาร์บอนเครดิตที่ได้รับการรับรอง")}</p></details>
-        <details className="settings-details role-switcher"><summary>{t("สลับบทบาทสาธิต")}<Icon name="chevron" /></summary><div><button onClick={() => onSwitchRole("reviewer")}>{t("ผู้ตรวจสอบ")}</button><button onClick={() => onSwitchRole("merchant")}>{t("ร้านค้า")}</button><button onClick={() => onSwitchRole("admin")}>{t("ผู้ดูแล")}</button></div></details>
+        {!IS_PUBLIC_PRESENTATION_DEMO && <details className="settings-details role-switcher"><summary>{t("สลับบทบาทสาธิต")}<Icon name="chevron" /></summary><div><button onClick={() => onSwitchRole("reviewer")}>{t("ผู้ตรวจสอบ")}</button><button onClick={() => onSwitchRole("merchant")}>{t("ร้านค้า")}</button><button onClick={() => onSwitchRole("admin")}>{t("ผู้ดูแล")}</button></div></details>}
         <button className="settings-row logout-row" onClick={onLogout}><span><Icon name="logout" />{t("ออกจากระบบสาธิต")}</span><Icon name="chevron" /></button>
       </section>
     </div>

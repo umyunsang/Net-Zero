@@ -2,6 +2,7 @@ import syntheticFixtures from "./synthetic-fixtures.json";
 import syntheticFixturePhotoUrl from "./synthetic-fixture.jpg?url";
 import type { CapturedPhoto, GpsSample } from "./product-types";
 import { translateCurrent } from "./localization";
+import { IS_PUBLIC_PRESENTATION_DEMO, PublicDemoApiError, publicDemoApi, publicDemoEvidenceId } from "./public-demo";
 
 export const TOKEN_KEY = "net-zero-access-token";
 export const SYNTHETIC_FIXTURE_ID = syntheticFixtures.fixtureId;
@@ -30,6 +31,14 @@ export function idempotencyKey(): string {
 }
 
 export async function api<T>(path: string, method = "GET", body?: unknown, headers: HeadersInit = {}): Promise<T> {
+  if (IS_PUBLIC_PRESENTATION_DEMO) {
+    try {
+      return await publicDemoApi<T>(path, method, body);
+    } catch (cause) {
+      if (cause instanceof PublicDemoApiError) throw new Error(translateCurrent(apiErrorMessages[cause.code] ?? "คำขอไม่สำเร็จ กรุณาลองใหม่ ({status})", { status: 400 }));
+      throw cause;
+    }
+  }
   const token = sessionStorage.getItem(TOKEN_KEY);
   let response: Response;
   try {
@@ -74,6 +83,7 @@ type Capture = {
 };
 
 async function uploadEvidence(blob: Blob, kind: "photo" | "gps_trace", capture: Capture): Promise<string> {
+  if (IS_PUBLIC_PRESENTATION_DEMO) return publicDemoEvidenceId(kind);
   const digest = await sha256(blob);
   const init = await api<{ uploadId: string; uploadToken: string }>("/evidence/init", "POST", {
     kind,
@@ -129,6 +139,10 @@ export async function uploadGpsTrace(samples: GpsSample[]): Promise<string> {
 }
 
 export async function openEvidence(id: string): Promise<void> {
+  if (IS_PUBLIC_PRESENTATION_DEMO) {
+    window.open(syntheticFixturePhotoUrl, "_blank", "noopener,noreferrer");
+    return;
+  }
   const token = sessionStorage.getItem(TOKEN_KEY);
   const response = await fetch(`/api/evidence/${id}/content`, {
     headers: token ? { authorization: `Bearer ${token}` } : {},

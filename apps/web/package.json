@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc -b && vite build",
+    "build:presentation": "tsc -b && vite build --mode presentation",
     "typecheck": "tsc -b --pretty false",
     "dev": "vite --host 0.0.0.0",
     "test": "vitest run src --passWithNoTests",
