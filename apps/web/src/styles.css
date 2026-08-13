@@ -685,6 +685,8 @@ html:lang(ko) .leaderboard-list em small { font-family: var(--font-ko); }
 .leaderboard-opted-note strong { font-size: 15px; font-weight: 700; line-height: 1.5; }
 .leaderboard-opted-note p { margin: 3px 0 0; color: var(--color-muted); font-size: 13px; line-height: 1.55; }
 .leaderboard-participation { align-self: start; padding: 22px; border: 1px solid var(--color-border); border-radius: 4px; background: var(--color-surface); box-shadow: var(--shadow-paper); }
+.leaderboard-city { position: relative; min-height: 158px; margin-bottom: 16px; border-bottom: 1px solid var(--color-border); }
+.leaderboard-city .city-motif { position: absolute; inset: 0; min-height: 0; }
 .leaderboard-profile-mark { width: 48px; height: 48px; margin-bottom: 16px; font-size: 13px; }
 .leaderboard-participation h2 { margin: 0 0 7px; font-size: 18px; font-weight: 600; line-height: 26px; }
 .leaderboard-participation > p { margin: 0 0 15px; color: var(--color-muted); font-size: 14px; line-height: 1.55; }

@@ -1,4 +1,4 @@
-import { type FormEvent, useEffect, useRef, useState } from "react";
+import { type FormEvent, lazy, Suspense, useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import {
   api,
@@ -25,7 +25,10 @@ import type {
   Voucher,
 } from "../product-types";
 import { ActivityIcon, BrandMark, Icon, Notice, ThaiForm } from "../ui";
-import { CityCanvas, InkBurst, useCountUp } from "./CityCanvas";
+import { CitySkyline, InkBurst, useCountUp } from "./motion";
+
+/* three.js stays out of the entry chunk; the skyline covers load and no-WebGL */
+const CityCanvas = lazy(() => import("./CityCanvas").then((module) => ({ default: module.CityCanvas })));
 import { LanguageSwitcher, useI18n } from "../i18n";
 import { localizeRewardTitle } from "../localization";
 
@@ -124,7 +127,7 @@ function BalanceModule({ points, reward }: { points: number; reward?: Reward }) 
               : t("อีก {count} คะแนน รับ{reward}", { count: remaining, reward: localizeRewardTitle(language, reward.titleThai) })
             : t("อีก {count} คะแนน ถึงรางวัล", { count: remaining })}</p>
       </div>
-      <CityCanvas points={points} />
+      <Suspense fallback={<CitySkyline />}><CityCanvas points={points} /></Suspense>
     </section>
   );
 }
@@ -738,6 +741,9 @@ function LeaderboardScreen({ onBack }: { onBack: () => void }) {
           </ol>
         </section>
         <aside className="leaderboard-participation">
+          <div className="leaderboard-city" aria-hidden="true">
+            <Suspense fallback={<CitySkyline />}><CityCanvas points={data.community_totals.verified_weekly_points} /></Suspense>
+          </div>
           <span className="leaderboard-profile-mark" aria-hidden="true">LR</span>
           <h2>{t("การเข้าร่วมของคุณ")}</h2>
           <p><strong>LotusRider</strong><br />{t("แสดงเฉพาะชื่อเล่นและคะแนนประจำสัปดาห์")}</p>
