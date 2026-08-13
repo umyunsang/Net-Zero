@@ -25,6 +25,7 @@ import type {
   Voucher,
 } from "../product-types";
 import { ActivityIcon, BrandMark, Icon, Notice, ThaiForm } from "../ui";
+import { CityCanvas, InkBurst, useCountUp } from "./CityCanvas";
 import { LanguageSwitcher, useI18n } from "../i18n";
 import { localizeRewardTitle } from "../localization";
 
@@ -105,6 +106,7 @@ function PageHeader({ title, subtitle, onBack }: { title: string; subtitle?: str
 
 function BalanceModule({ points, reward }: { points: number; reward?: Reward }) {
   const { t, language } = useI18n();
+  const displayPoints = useCountUp(points);
   const target = reward?.pointsCost ?? 20;
   const remaining = Math.max(0, target - points);
   const progress = Math.min(100, target === 0 ? 100 : (points / target) * 100);
@@ -112,7 +114,7 @@ function BalanceModule({ points, reward }: { points: number; reward?: Reward }) 
     <section className="balance-module" aria-label={t("คะแนนของคุณ")}>
       <span className="balance-leaf-mark" aria-hidden="true"><Icon name="activity" /></span>
       <div className="balance-copy">
-        <strong><span>{points}</span> {t("คะแนน")}</strong>
+        <strong><span>{displayPoints}</span> {t("คะแนน")}</strong>
         <div className="progress-track" aria-hidden="true"><span style={{ width: `${progress}%` }} /></div>
         <p>{remaining === 0
           ? t("แลกได้แล้ว")
@@ -122,9 +124,7 @@ function BalanceModule({ points, reward }: { points: number; reward?: Reward }) 
               : t("อีก {count} คะแนน รับ{reward}", { count: remaining, reward: localizeRewardTitle(language, reward.titleThai) })
             : t("อีก {count} คะแนน ถึงรางวัล", { count: remaining })}</p>
       </div>
-      <div className="city-motif" aria-hidden="true">
-        <svg viewBox="0 0 180 74"><path d="M3 66h174M18 66V42h22v24M28 42V28h18v38M58 66V21h30v45M70 34h6M70 44h6M70 54h6M101 66V40h22v26M134 66V31h25v35M141 41h5M141 51h5"/><path d="M9 66V52m0 0c-8-6-8-14 0-18 8 4 8 12 0 18Zm113 14V54m0 0c-7-5-7-12 0-16 7 4 7 11 0 16Zm45 12V48m0 0c-8-6-8-14 0-18 8 4 8 12 0 18Z"/></svg>
-      </div>
+      <CityCanvas points={points} />
     </section>
   );
 }
@@ -423,6 +423,7 @@ function ActivityCapture({ activity, onBack, onHistory }: { activity: Activity; 
     const awardedPoints = completion?.awardedPoints ?? 0;
     return (
       <div className="success-screen" aria-live="polite">
+        <InkBurst />
         <div className="success-icon"><Icon name="check" /></div>
         <h1>{t(verified ? "สำเร็จแล้ว" : "ส่งแล้ว")}</h1>
         <p>{verified ? awardedPoints > 0 ? t("+{count} คะแนน", { count: awardedPoints }) : t("ยืนยันแล้ว") : t("รอตรวจสอบ")}</p>
@@ -552,6 +553,7 @@ function WalletScreen({ onOpenVoucher, refreshKey }: { onOpenVoucher: (voucher: 
   const [state, setState] = useState<RequestState>("loading");
   const [actionState, setActionState] = useState<RequestState>("idle");
   const [error, setError] = useState("");
+  const displayBalance = useCountUp(balance);
 
   function load() {
     Promise.all([
@@ -590,7 +592,7 @@ function WalletScreen({ onOpenVoucher, refreshKey }: { onOpenVoucher: (voucher: 
   return (
     <div>
       <PageHeader title={t("กระเป๋าของฉัน")} />
-      <section className="wallet-balance" aria-label={t("คะแนนพร้อมใช้")}><span><Icon name="activity" /><strong>{balance}</strong> {t("คะแนน")}</span><small>{t("พร้อมใช้")}</small><button className="text-button">{t("ดูประวัติคะแนน")}</button></section>
+      <section className="wallet-balance" aria-label={t("คะแนนพร้อมใช้")}><span><Icon name="activity" /><strong>{displayBalance}</strong> {t("คะแนน")}</span><small>{t("พร้อมใช้")}</small><button className="text-button">{t("ดูประวัติคะแนน")}</button></section>
       <Notice state={actionState} error={error} success={t("ออกบัตรแล้ว")} />
       <div className="wallet-columns">
         <section className="content-section reward-catalog">
@@ -832,7 +834,7 @@ export function ConsumerApp({ onSwitchRole, onLogout }: { onSwitchRole: (role: R
         {navItems.map((item) => <button key={item.id} className={activeDestination === item.id ? "active" : ""} onClick={() => navigate(item.id)}><Icon name={item.icon} /><span>{item.label}</span></button>)}
       </nav>
       <div className="consumer-rail-identity" aria-hidden="true"><span>LR</span><div><strong>LotusRider</strong><small>{t("สาธิต")}</small></div></div>
-      <main className="consumer-main">{screen}</main>
+      <main className="consumer-main"><div className="screen-transition" key={page}>{screen}</div></main>
     </div>
   );
 }

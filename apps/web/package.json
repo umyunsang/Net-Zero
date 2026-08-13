@@ -11,12 +11,17 @@
     "test:e2e": "playwright test && node scripts/write-device-gate-report.mjs"
   },
   "dependencies": {
+    "@fontsource-variable/fraunces": "^5.3.0",
+    "@fontsource/noto-serif-kr": "^5.3.0",
+    "@fontsource/noto-serif-thai": "^5.3.0",
+    "@fontsource/sarabun": "^5.3.0",
     "@net-zero/contracts": "workspace:*",
     "@tanstack/react-query": "^5.85.5",
     "qrcode": "^1.5.4",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "react-router-dom": "^7.8.2"
+    "react-router-dom": "^7.8.2",
+    "three": "^0.185.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0",
@@ -24,6 +29,7 @@
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19.1.12",
     "@types/react-dom": "^19.1.9",
+    "@types/three": "^0.185.4",
     "@vitejs/plugin-react": "^5.0.2",
     "typescript": "^5.9.2",
     "vite": "^7.1.3",
