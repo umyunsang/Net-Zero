@@ -61,7 +61,7 @@ export function structureBudget(points: number): { buildings: number; trees: num
  * with the verified point balance. Drag to rotate; idles on a slow turn.
  * Falls back to the static SVG skyline when WebGL is unavailable.
  */
-export function CityCanvas({ points }: { points: number }) {
+export function CityCanvas({ points, fallback = "skyline" }: { points: number; fallback?: "skyline" | "empty" }) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const [webglFailed, setWebglFailed] = useState(false);
   const pointsRef = useRef(points);
@@ -84,6 +84,8 @@ export function CityCanvas({ points }: { points: number }) {
     }
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     host.appendChild(renderer.domElement);
+    host.dataset.interactive = "true";
+    host.dataset.hovered = "false";
 
     const scene = new THREE.Scene();
     const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 60);
@@ -91,13 +93,35 @@ export function CityCanvas({ points }: { points: number }) {
     camera.lookAt(0, 0.7, 0);
 
     const city = new THREE.Group();
+    const structuresLayer = new THREE.Group();
     scene.add(city);
     city.add(makeBlock(5.2, 0.18, 5.2, PAPER, INK));
+    city.add(structuresLayer);
 
     const structures: Structure[] = [];
     let builtBuildings = 0;
     let builtTrees = 0;
     const reduceMotion = prefersReducedMotion();
+
+    function centerStructureFootprint() {
+      if (structures.length === 0) return;
+      const bounds = new THREE.Box3();
+      const itemBounds = new THREE.Box3();
+      const center = new THREE.Vector3();
+      structuresLayer.position.set(0, 0, 0);
+      structuresLayer.updateMatrixWorld(true);
+      for (const structure of structures) {
+        const animatedScale = structure.mesh.scale.clone();
+        structure.mesh.scale.setScalar(1);
+        structure.mesh.updateMatrixWorld(true);
+        itemBounds.setFromObject(structure.mesh, true);
+        bounds.union(itemBounds);
+        structure.mesh.scale.copy(animatedScale);
+      }
+      bounds.getCenter(center);
+      structuresLayer.position.set(-center.x, 0, -center.z);
+      structuresLayer.updateMatrixWorld(true);
+    }
 
     function syncStructures(balance: number) {
       const budget = structureBudget(balance);
@@ -110,7 +134,7 @@ export function CityCanvas({ points }: { points: number }) {
         const landmark = index % 7 === 3;
         const block = makeBlock(width, height, width, PAPER, landmark ? TERRACOTTA : INK);
         block.position.set(cx * 0.92 + (seeded(index * 3) - 0.5) * 0.22, 0.09, cz * 0.92 + (seeded(index * 5) - 0.5) * 0.22);
-        city.add(block);
+        structuresLayer.add(block);
         structures.push({ mesh: block, bornAt: reduceMotion ? 0 : now + structures.length * 60 });
         if (reduceMotion) block.scale.setScalar(1);
         else block.scale.setScalar(0.001);
@@ -121,12 +145,13 @@ export function CityCanvas({ points }: { points: number }) {
         const [cx, cz] = cellPosition(index * 2 + 1);
         const tree = makeTree(index);
         tree.position.set(cx * 0.92 + (seeded(index * 11) - 0.5) * 0.34, 0.09, cz * 0.92 + (seeded(index * 17) - 0.5) * 0.34);
-        city.add(tree);
+        structuresLayer.add(tree);
         structures.push({ mesh: tree, bornAt: reduceMotion ? 0 : now + structures.length * 60 });
         if (reduceMotion) tree.scale.setScalar(1);
         else tree.scale.setScalar(0.001);
         builtTrees += 1;
       }
+      centerStructureFootprint();
       renderer.render(scene, camera);
     }
     syncRef.current = syncStructures;
@@ -137,11 +162,15 @@ export function CityCanvas({ points }: { points: number }) {
       const { clientWidth, clientHeight } = host;
       if (clientWidth === 0 || clientHeight === 0) return;
       const aspect = clientWidth / clientHeight;
-      const viewSize = 3.5;
-      camera.left = -viewSize * aspect;
-      camera.right = viewSize * aspect;
-      camera.top = viewSize;
-      camera.bottom = -viewSize * 0.62;
+      const minimumSceneWidth = 6.8;
+      const minimumSceneHeight = 5.7;
+      const viewHeight = Math.max(minimumSceneHeight, minimumSceneWidth / aspect);
+      const viewCenterY = 0.65;
+      const viewWidth = viewHeight * aspect;
+      camera.left = -viewWidth / 2;
+      camera.right = viewWidth / 2;
+      camera.top = viewCenterY + viewHeight / 2;
+      camera.bottom = viewCenterY - viewHeight / 2;
       camera.updateProjectionMatrix();
       renderer.setSize(clientWidth, clientHeight);
       renderer.render(scene, camera);
@@ -151,6 +180,8 @@ export function CityCanvas({ points }: { points: number }) {
     resize();
 
     let dragging = false;
+    let hovering = false;
+    let hoverBlend = 0;
     let lastX = 0;
     let spin = 0;
     const onPointerDown = (event: PointerEvent) => { dragging = true; lastX = event.clientX; };
@@ -161,7 +192,11 @@ export function CityCanvas({ points }: { points: number }) {
       lastX = event.clientX;
     };
     const onPointerUp = () => { dragging = false; };
+    const onPointerEnter = () => { hovering = true; host.dataset.hovered = "true"; };
+    const onPointerLeave = () => { hovering = false; dragging = false; host.dataset.hovered = "false"; };
     renderer.domElement.addEventListener("pointerdown", onPointerDown);
+    renderer.domElement.addEventListener("pointerenter", onPointerEnter);
+    renderer.domElement.addEventListener("pointerleave", onPointerLeave);
     window.addEventListener("pointermove", onPointerMove);
     window.addEventListener("pointerup", onPointerUp);
 
@@ -172,9 +207,14 @@ export function CityCanvas({ points }: { points: number }) {
       if (!running) return;
       const delta = Math.min((time - lastTime) / 1000, 0.05);
       lastTime = time;
+      const hoverTarget = hovering && !reduceMotion ? 1 : 0;
+      hoverBlend += (hoverTarget - hoverBlend) * Math.min(1, delta * 8);
+      const hoverScale = 1 + hoverBlend * 0.045;
+      city.scale.setScalar(hoverScale);
+      city.position.y = hoverBlend * 0.06;
       if (!dragging) {
         spin *= 0.94;
-        city.rotation.y += (reduceMotion ? 0 : delta * 0.14) + spin;
+        city.rotation.y += (reduceMotion ? 0 : delta * (0.14 + hoverBlend * 0.2)) + spin;
       }
       for (const structure of structures) {
         if (structure.bornAt === 0) continue;
@@ -207,8 +247,12 @@ export function CityCanvas({ points }: { points: number }) {
       intersection.disconnect();
       resizeObserver.disconnect();
       renderer.domElement.removeEventListener("pointerdown", onPointerDown);
+      renderer.domElement.removeEventListener("pointerenter", onPointerEnter);
+      renderer.domElement.removeEventListener("pointerleave", onPointerLeave);
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerup", onPointerUp);
+      delete host.dataset.interactive;
+      delete host.dataset.hovered;
       scene.traverse((object) => {
         if (object instanceof THREE.Mesh || object instanceof THREE.LineSegments) {
           object.geometry.dispose();
@@ -222,6 +266,6 @@ export function CityCanvas({ points }: { points: number }) {
     };
   }, [webglFailed]);
 
-  if (webglFailed) return <CitySkyline />;
+  if (webglFailed) return fallback === "skyline" ? <CitySkyline /> : <div className="city-motif city-unavailable" aria-hidden="true" />;
   return <div ref={hostRef} className="city-motif" aria-hidden="true" />;
 }

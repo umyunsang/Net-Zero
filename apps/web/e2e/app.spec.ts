@@ -179,6 +179,49 @@ test("header language control switches Thai, English, and Korean immediately and
   await expect(page.getByRole("heading", { name: "탄소를 줄이고 포인트를 받으세요" })).toBeVisible();
 });
 
+test("welcome reuses the centred Fable 3D city across cover ratios", async ({ page }) => {
+  await mockApi(page, { dashboardPoints: 0 });
+  await page.goto("/");
+  for (const viewport of [
+    { width: 320, height: 568 },
+    { width: 384, height: 824 },
+    { width: 768, height: 600 },
+    { width: 1440, height: 900 },
+  ]) {
+    await page.setViewportSize(viewport);
+    const scene = page.locator(".welcome-scene");
+    await expect(scene.locator("canvas")).toBeVisible();
+    const metrics = await scene.evaluate((element) => {
+      const container = element.getBoundingClientRect();
+      const motif = element.querySelector<HTMLElement>(".city-motif")?.getBoundingClientRect();
+      const canvas = element.querySelector<HTMLCanvasElement>("canvas");
+      const surface = canvas?.getBoundingClientRect();
+      return {
+        height: container.height,
+        surfaceWidth: surface?.width ?? 0,
+        surfaceHeight: surface?.height ?? 0,
+        rendererWidth: canvas?.width ?? 0,
+        rendererHeight: canvas?.height ?? 0,
+        centerDelta: motif ? Math.abs((container.left + container.width / 2) - (motif.left + motif.width / 2)) : Number.POSITIVE_INFINITY,
+        overflow: document.documentElement.scrollWidth - window.innerWidth,
+      };
+    });
+    expect(metrics.height).toBeGreaterThanOrEqual(149);
+    expect(metrics.surfaceWidth).toBeGreaterThanOrEqual(275);
+    expect(metrics.surfaceHeight).toBeGreaterThanOrEqual(149);
+    expect(metrics.rendererWidth).toBeGreaterThan(0);
+    expect(metrics.rendererHeight).toBeGreaterThan(0);
+    expect(metrics.centerDelta).toBeLessThanOrEqual(1);
+    expect(metrics.overflow).toBe(0);
+  }
+  const interactiveCity = page.locator(".welcome-scene .city-motif");
+  await expect(interactiveCity).toHaveAttribute("data-interactive", "true");
+  await interactiveCity.hover();
+  await expect(interactiveCity).toHaveAttribute("data-hovered", "true");
+  await page.mouse.move(0, 0);
+  await expect(interactiveCity).toHaveAttribute("data-hovered", "false");
+});
+
 test("1024px home keeps the score hierarchy readable beside the secondary column", async ({ page }) => {
   await page.setViewportSize({ width: 1024, height: 900 });
   await mockApi(page, { dashboardPoints: 0 });
@@ -322,6 +365,52 @@ test("weekly leaderboard keeps four-job navigation and confirms opt-out", async 
   await expect(page.getByText("คุณไม่ได้เข้าร่วมสัปดาห์นี้")).toBeVisible();
   await expect(page.getByText("เมฆสีเขียว")).toHaveCount(0);
   await expect(page.getByText("ใบไม้ยามเช้า").first()).toBeVisible();
+});
+
+test("leaderboard Fable city stays centred and visible across viewport ratios", async ({ page }) => {
+  await mockApi(page, { leaderboardOptedIn: true });
+  await login(page, "ผู้ใช้งาน");
+  await page.getByRole("button", { name: "ฉัน", exact: true }).click();
+  await page.getByRole("button", { name: /อันดับประจำสัปดาห์/ }).click();
+
+  for (const viewport of [
+    { width: 320, height: 568 },
+    { width: 393, height: 852 },
+    { width: 640, height: 480 },
+    { width: 768, height: 1024 },
+    { width: 1024, height: 768 },
+    { width: 1440, height: 900 },
+  ]) {
+    await page.setViewportSize(viewport);
+    const city = page.locator(".leaderboard-city");
+    await city.scrollIntoViewIfNeeded();
+    await expect(city.locator("canvas")).toBeVisible();
+    const metrics = await city.evaluate((element) => {
+      const container = element.getBoundingClientRect();
+      const motif = element.querySelector<HTMLElement>(".city-motif")?.getBoundingClientRect();
+      const canvas = element.querySelector<HTMLCanvasElement>("canvas");
+      const surface = canvas?.getBoundingClientRect();
+      return {
+        containerHeight: container.height,
+        motifWidth: motif?.width ?? 0,
+        surfaceWidth: surface?.width ?? 0,
+        surfaceHeight: surface?.height ?? 0,
+        rendererWidth: canvas?.width ?? 0,
+        rendererHeight: canvas?.height ?? 0,
+        centerDelta: motif ? Math.abs((container.left + container.width / 2) - (motif.left + motif.width / 2)) : Number.POSITIVE_INFINITY,
+        overflow: document.documentElement.scrollWidth - window.innerWidth,
+      };
+    });
+    expect(metrics.containerHeight).toBeGreaterThanOrEqual(157);
+    expect(metrics.motifWidth).toBeGreaterThanOrEqual(220);
+    expect(metrics.motifWidth).toBeLessThanOrEqual(481);
+    expect(metrics.surfaceWidth).toBeGreaterThanOrEqual(220);
+    expect(metrics.surfaceHeight).toBeGreaterThanOrEqual(157);
+    expect(metrics.rendererWidth).toBeGreaterThan(0);
+    expect(metrics.rendererHeight).toBeGreaterThan(0);
+    expect(metrics.centerDelta).toBeLessThanOrEqual(1);
+    expect(metrics.overflow).toBe(0);
+  }
 });
 
 test("leaderboard keeps committed opt-out when the refresh fails", async ({ page }) => {
