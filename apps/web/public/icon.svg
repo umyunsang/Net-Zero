@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="ใบไม้สีเขียว">
+  <rect width="512" height="512" rx="96" fill="#124e3b"/>
+  <path d="M394 112C246 112 132 191 132 316c0 50 33 84 81 84 111 0 181-115 181-288Z" fill="#e8f1e9"/>
+  <path d="M119 407c54-101 127-164 224-216" fill="none" stroke="#7bbf91" stroke-width="28" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,33 @@
+{
+  "name": "@net-zero/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -b && vite build",
+    "typecheck": "tsc -b --pretty false",
+    "dev": "vite --host 0.0.0.0",
+    "test": "vitest run src --passWithNoTests",
+    "test:e2e": "playwright test && node scripts/write-device-gate-report.mjs"
+  },
+  "dependencies": {
+    "@net-zero/contracts": "workspace:*",
+    "@tanstack/react-query": "^5.85.5",
+    "qrcode": "^1.5.4",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "react-router-dom": "^7.8.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "@types/node": "^24.3.0",
+    "@types/qrcode": "^1.5.6",
+    "@types/react": "^19.1.12",
+    "@types/react-dom": "^19.1.9",
+    "@vitejs/plugin-react": "^5.0.2",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.3",
+    "vite-plugin-pwa": "^1.3.0",
+    "vitest": "^3.2.4"
+  }
+}
