@@ -75,34 +75,6 @@ DEMO-BIN-BKK-01:TOKEN-0002
 DEMO-BIN-BKK-01:TOKEN-0003
 ```
 
-## Testing & Readiness
-
-### Mock-demo readiness — expected to pass
-
-```sh
-TEST_DATABASE_URL=postgres://netzero:netzero@localhost:5432/netzero_test pnpm evidence:write
-```
-
-An atomic verification runs the complete three-flow API test, typecheck, build, full tests, database-from-empty checks, E2E validation, and readiness checks in the same source. `pnpm db:demo-readiness` is intentionally not runnable in isolation to prevent a marker/factor-only state from being misrepresented as readiness.
-
-### Production readiness — expected to fail closed
-
-Run `pnpm db:production-readiness` as a negative check and expect a non-zero exit code because there is no human factor approval, no physical-device evidence, no production deployment, and no real partner integration. Mock-demo readiness results must not be used as evidence for production readiness.
-
-The browser or Pixel emulation uses synthetic GPS route fixtures over a 30-second window only. It does not call the device GPS/camera, is not evidence from a real device, and does not claim that a physical device passed.
-
-### Full Contract Verification
-
-```sh
-pnpm typecheck
-pnpm build
-pnpm test
-TEST_DATABASE_URL=postgres://netzero:netzero@localhost:5432/netzero pnpm db:test-from-empty
-pnpm test:e2e
-```
-
-The commands above are the expected verification steps under contract. They are not confirmation that this document has already been run or passed.
-
 ## Disclaimer
 
 The CO2e displayed is an **estimated CO2e value derived from TGO factors/methods with versioning**. The factors are only source-referenced candidate data, and mock approval is limited to the `mock_demo` scope for demo purposes only. This is not certification, endorsement, or support from TGO, carbon credits, or offsets. It does not claim fraud prevention or proof that a real activity occurred.
